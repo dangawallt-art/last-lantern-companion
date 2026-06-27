@@ -562,15 +562,20 @@ function LeaderScreen({enemies,showAdd,newType,newName,nextId,onShowAdd,onHideAd
         <span style={{fontSize:11,color:MUT,marginRight:8}}>{enemies.length} active</span>
         <button onClick={onShowAdd} style={TS({background:SURF,border:`1px solid ${BORD}`,borderRadius:8,padding:"8px 14px",color:TXT,fontSize:11,fontWeight:700,fontFamily:"'Cinzel',serif",letterSpacing:1})}>+ ADD</button>
       </div>
-      <div style={{flex:1,overflowY:"auto",padding:14}}>
-        {enemies.length===0?(
-          <div style={{textAlign:"center",paddingTop:60,color:MUT}}>
-            <div style={{fontSize:32,marginBottom:12}}>⚔</div>
-            <div style={{fontSize:14,letterSpacing:1,fontFamily:"'Cinzel',serif"}}>NO ENEMIES</div>
-            <div style={{fontSize:12,marginTop:6}}>Tap + ADD to begin the encounter</div>
-          </div>
-        ):enemies.map(e=><EnemyCard key={e.id} enemy={e} onAdjust={onAdjust} onRemove={onRemove}/>)}
-      </div>
+      {enemies.length===0?(
+        <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24}}>
+          <div style={{fontSize:52,opacity:0.25}}>⚔</div>
+          <div style={{fontSize:15,letterSpacing:2,color:MUT,fontFamily:"'Cinzel',serif",textTransform:"uppercase"}}>No Enemies</div>
+          <div style={{fontSize:12,color:MUT,textAlign:"center",lineHeight:1.7,maxWidth:220}}>Tap <strong style={{color:TXT}}>+ ADD</strong> above to add a Grunt, Elite, or Boss to the encounter</div>
+          <button onClick={onShowAdd} style={TS({marginTop:8,background:`rgba(200,169,81,0.1)`,border:`1.5px solid rgba(200,169,81,0.35)`,borderRadius:10,padding:"14px 36px",color:"#c8a951",fontSize:13,fontWeight:700,fontFamily:"'Cinzel',serif",letterSpacing:1.5})}>
+            + ADD ENEMY
+          </button>
+        </div>
+      ):(
+        <div style={{flex:1,overflowY:"auto",padding:14}}>
+          {enemies.map(e=><EnemyCard key={e.id} enemy={e} onAdjust={onAdjust} onRemove={onRemove}/>)}
+        </div>
+      )}
       {showAdd&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.65)",display:"flex",flexDirection:"column",justifyContent:"flex-end",zIndex:50}} onClick={e=>{if(e.target===e.currentTarget)onHideAdd();}}>
           <div style={{background:CARD,borderTop:`1px solid ${BORD}`,borderTopLeftRadius:16,borderTopRightRadius:16,padding:"24px 20px 36px",maxWidth:480,width:"100%",margin:"0 auto"}}>
