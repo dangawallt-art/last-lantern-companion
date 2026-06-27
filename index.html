@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+  <title>The Last Lantern</title>
+
+  <!-- PWA / mobile install -->
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+  <meta name="apple-mobile-web-app-title" content="Last Lantern"/>
+  <meta name="theme-color" content="#090b12"/>
+  <link rel="manifest" href="manifest.json"/>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+
+  <!-- React 18 + Babel standalone (no build step needed) -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+    html,body{height:100%;background:#090b12;overflow-x:hidden;}
+    #root{min-height:100%;}
+
+    @keyframes floatUp{
+      0%  {transform:translate(0,0) scale(1);opacity:0;}
+      12% {opacity:var(--op,0.7);}
+      88% {opacity:calc(var(--op,0.7)*0.3);}
+      100%{transform:translate(var(--dx,0px),var(--dy,-90px)) scale(0.5);opacity:0;}
+    }
+    @keyframes emberRise{
+      0%  {transform:translate(0,0) scale(1);opacity:0;}
+      15% {opacity:0.95;}
+      80% {opacity:0.4;}
+      100%{transform:translate(var(--ex,8px),-110px) scale(0.3);opacity:0;}
+    }
+    @keyframes flameDance{
+      0%,100%{transform:scaleX(1)   scaleY(1)   translateY(0);}
+      25%    {transform:scaleX(1.2) scaleY(0.9) translateY(2px);}
+      50%    {transform:scaleX(0.85)scaleY(1.1) translateY(-3px);}
+      75%    {transform:scaleX(1.1) scaleY(0.95)translateY(1px);}
+    }
+    @keyframes sp1{0%,100%{box-shadow:inset 0 0 35px rgba(210,40,40,.10);}50%{box-shadow:inset 0 0 70px  rgba(210,40,40,.20);}}
+    @keyframes sp2{0%,100%{box-shadow:inset 0 0 50px rgba(220,40,40,.18);}50%{box-shadow:inset 0 0 100px rgba(220,40,40,.36);}}
+    @keyframes sp3{0%,100%{box-shadow:inset 0 0 60px rgba(230,40,40,.28);}50%{box-shadow:inset 0 0 120px rgba(230,40,40,.52);}}
+    @keyframes sp4{
+      0%,100%{box-shadow:inset 0 0 70px rgba(255,30,30,.40),inset 0 0 20px rgba(255,80,80,.20);}
+      50%    {box-shadow:inset 0 0 140px rgba(255,30,30,.65),inset 0 0 40px rgba(255,80,80,.30);}
+    }
+    @keyframes fadeIn {from{opacity:0;transform:scale(0.96);}to{opacity:1;transform:scale(1);}}
+    @keyframes slideIn{from{opacity:0;transform:translateX(50px);}to{opacity:1;transform:translateX(0);}}
+
+    .fade-in {animation:fadeIn  0.35s ease-out both;}
+    .slide-in{animation:slideIn 0.30s ease-out both;}
+    .sp1{animation:sp1 3.0s ease-in-out infinite;}
+    .sp2{animation:sp2 2.0s ease-in-out infinite;}
+    .sp3{animation:sp3 1.5s ease-in-out infinite;}
+    .sp4{animation:sp4 0.8s ease-in-out infinite;}
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+
+// ── TOKENS ──────────────────────────────────────────────────────────────────
+const BG="#090b12",CARD="#111420",SURF="#181d2c",BORD="#242a3a",TXT="#dcd8cc",MUT="#626574";
+const EN_C="#4a8fd6",ST_C="#c84040";
+const hpC=p=>p>.6?"#2db86a":p>.3?"#d99018":"#d43030";
+const AT={
+  basic:  {l:"BASIC",    c:"#606470"},
+  passive:{l:"PASSIVE",  c:"#8a7e5c"},
+  sig:    {l:"SIGNATURE",c:"#c8a951"},
+  util:   {l:"UTILITY",  c:"#4a8fd6"},
+  power:  {l:"POWER",    c:"#dc8b32"},
+  gambit: {l:"GAMBIT",   c:"#c84040"},
+  quirk:  {l:"QUIRK",    c:"#9a9a3a"},
+};
+const AB_ORDER=["basic","passive","quirk","sig","util","power","gambit"];
+
+// ── CHARACTER DATA ───────────────────────────────────────────────────────────
+const CH={
+  daniel:{n:"Daniel",ti:"The Warden",ar:"Tank × Tinkerer",col:"#5b8db8",hp:32,en:4,spd:1,fh:"Physical or Magic",
+    mission:[{id:"reactive",l:"Reactive Plating",b:"Reflect 2 dmg to attacker when first hit each round."},{id:"sentry",l:"Sentry Aura",b:"Place Defense token on your tile each round start; allies gain +1 DEF."}],
+    ab:[
+      {t:"basic",  n:"Basic Attack",       c:"",                                d:"4 damage. Interpose: after Daniel damages an enemy, Daniel or one ally on his tile gains +1 DEF until end of round."},
+      {t:"passive",n:"Configured Plating", c:"mission start choice",            d:"Choose one mode for the whole mission:\n\n• Reactive Plating — first time Daniel takes damage each round, reflect 2 damage back.\n\n• Sentry Aura — start of each round, place a Defense token on Daniel's tile. Allies who start here gain +1 DEF."},
+      {t:"sig",    n:"Cable Snare",        c:"1 EN",                            d:"One enemy within 2 tiles is Rooted for 1 round and takes 4 damage. Bosses Slowed instead."},
+      {t:"power",  n:"Seismic Clap",       c:"2 EN",                            d:"Choose shape:\n• Focused — straight line 2 tiles, 8 damage.\n• Wide — forward arc 3 tiles, 6 damage.\nNormal enemies pushed 2 tiles. Bosses pushed 1 tile."},
+      {t:"util",   n:"Sentry Beacon",      c:"1 EN",                            d:"Deploy to tile within 2. Allies on beacon tile and adjacent gain +2 DEF. Auto-retrieved after 1 round."},
+      {t:"gambit", n:"Hardened Shell",     c:"1 action + 2 Stress (2×/mission)",d:"Roll 1d6:\n1 → +50% damage taken this AND next round\n2–3 → Negate ⅓ incoming damage\n4–5 → Negate ⅔ incoming damage\n6 → Negate ALL incoming damage"},
+      {t:"quirk",  n:"Owes Everyone",      c:"",                                d:"When an ally is Downed — the moment it happens — Daniel gains 2 Stress."},
+    ]},
+  matilda:{n:"Matilda",ti:"The Vanguard",ar:"Assassin",col:"#9b5de5",hp:20,en:4,spd:2,fh:"Physical",
+    ab:[
+      {t:"basic",  n:"Basic Attack",     c:"",                                d:"5 damage. Slip Past: after Matilda's Basic Attack, she may move 1 tile."},
+      {t:"passive",n:"Already Moving",   c:"reactive",                        d:"First time each round an ally within 2 tiles takes damage, Matilda may move 1 tile toward the attacker. Mark that attacker as Tracked until end of Matilda's next turn."},
+      {t:"sig",    n:"Cut In",           c:"1 EN",                            d:"Move up to 2 tiles, then deal 8 damage to one adjacent enemy. If Tracked, +2 damage (10 total)."},
+      {t:"util",   n:"Slip Route",       c:"1 EN",                            d:"Move up to 2 tiles. If not adjacent to any enemy, become Hidden until she deals damage or next turn starts.\n\nWhile Hidden: cannot be targeted (AOE still hits). Next attack from Hidden deals +3 damage."},
+      {t:"power",  n:"Dead Drop",        c:"2 EN",                            d:"Requires: Hidden.\nChoose enemy within 3 tiles. Move to adjacent tile, deal 12 damage ignoring DEF. If Tracked, +2 damage. Hidden ends."},
+      {t:"gambit", n:"No One Gets Left", c:"1 action + 2 Stress (2×/mission)",d:"Move to ally within 3 tiles, who may move up to 2 tiles. Matilda may deal 10 damage to one adjacent enemy.\n\nDownside: Matilda is Exposed until her next turn (enemy attacks deal +2 against her)."},
+      {t:"quirk",  n:"Cannot Stay Back", c:"",                                d:"End of round: if ally within 2 tiles took damage and Matilda did NOT move toward an enemy, she gains 1 Stress."},
+    ]},
+  vivi:{n:"Vivi",ti:"The Wildheart",ar:"Brawler",col:"#f15025",hp:32,en:3,spd:1,fh:"Physical",
+    mission:[{id:"spite",l:"Spite",b:"Gain Spite tokens when hit; spend for +3/+6/+10 damage."},{id:"momentum",l:"Momentum",b:"Each tile moved this turn, next attack +1 damage (max +3)."}],
+    ab:[
+      {t:"basic",  n:"Basic Attack",          c:"",                                d:"5 damage. Shove: after Vivi damages a normal enemy, she may push it 1 tile."},
+      {t:"passive",n:"Choose At Mission Start",c:"mission start choice",            d:"• Spite — first time each round Vivi or ally within 2 takes damage, gain 1 Spite token (max 3). Spend on next attack: 1=+3 dmg; 2=+6+move 1; 3=+10+move 2.\n\n• Momentum — each tile moved this turn, next attack +1 damage (max +3)."},
+      {t:"sig",    n:"Quick Strike",           c:"1 EN",                            d:"Deal 10 damage to one enemy on Vivi's tile or an adjacent tile."},
+      {t:"power",  n:"Wreck It",               c:"2 EN",                            d:"Deal 18 damage to one enemy on Vivi's tile. If enemy dies, Vivi may move 1 tile."},
+      {t:"util",   n:"Charge In",              c:"1 EN",                            d:"Move up to 2 tiles in a straight line through enemy tiles. If Spite mode, also gain 1 Spite token."},
+      {t:"gambit", n:"Obliterate",             c:"1 action + 2 Stress (2×/mission)",d:"This turn and next: +1 action, attacks deal +5 damage.\n\nDownside — Exhausted: the round after it ends, all damage Vivi deals is halved (min 1)."},
+      {t:"quirk",  n:"Stillness Annoys Her",   c:"",                                d:"End of any round Vivi did NOT deal damage to an enemy, she gains 1 Stress."},
+    ]},
+  petter:{n:"Petter",ti:"The Orator",ar:"Tank × Brawler",col:"#3a7cb5",hp:36,en:3,spd:1,fh:"Physical",
+    ab:[
+      {t:"basic",  n:"Basic Attack",     c:"",                                d:"4 damage. Brace: one ally on Petter's tile gains +1 DEF until end of round."},
+      {t:"passive",n:"Incident Command", c:"each round start",                d:"Choose one ally within 2 tiles:\n• Brace — ally gains +1 DEF this round.\n• Steady — ally removes 1 Stress.\n\nIf group resolves an Event without losing Morale, Petter restores 1 EN."},
+      {t:"sig",    n:"Turn The Line",    c:"1 EN",                            d:"Deal 7 damage to enemy on tile or adjacent. If adjacent to ally/objective/feature, may move it 1 tile → target becomes Exposed (next attack deals +3 damage)."},
+      {t:"power",  n:"Fireline",         c:"2 EN",                            d:"Straight line up to 3 tiles from Petter. Enemies take 9 damage. Allies on those tiles may each move 1 tile before damage."},
+      {t:"util",   n:"Clear The Exit",   c:"1 EN",                            d:"Choose ally or mission token within 2 tiles. It may move up to 2 tiles. Until end of round, first enemy attack against it deals 3 less damage."},
+      {t:"gambit", n:"Listen Carefully", c:"1 action + 2 Stress (2×/mission)",d:"Choose Rally Point within 2 tiles. Up to 3 allies within 3 tiles move up to 2 toward it. Allies on Rally Point gain +2 DEF, cannot be forced to move.\n\nDownside: Petter is Rooted, cannot gain DEF from abilities or relics."},
+      {t:"quirk",  n:"Cannot Leave It Alone",c:"",                           d:"End of round: if ally within 2 tiles took damage and Petter did NOT end adjacent to a wounded ally, gains 1 Stress."},
+    ]},
+  nikken:{n:"Nikken",ti:"The Dozer",ar:"Brawler × Assassin",col:"#b84c6a",hp:28,en:4,spd:1,fh:"Physical",
+    ab:[
+      {t:"basic",  n:"Basic Attack",           c:"",                                d:"4 damage. Break: on hit, reduce target's DEF by 1 until end of round."},
+      {t:"passive",n:"Grip",                   c:"each round start",                d:"Gain 1 Grip token (max 2). Grip persists between rounds. Spend Grip tokens on any attack this turn for +2 damage per token."},
+      {t:"sig",    n:"Face Checking the Bush", c:"1 EN",                            d:"Move into target's tile, deal 3 damage three times (9 total). Target must attack Nikken next round if able."},
+      {t:"power",  n:"Delt Shield",            c:"2 EN",                            d:"Deal 8 damage to one target, then gain +2 DEF until the next time Nikken takes damage."},
+      {t:"util",   n:"Set The Route",          c:"1 EN",                            d:"Mark one enemy within 3 tiles. Next attack against that enemy by any ally deals +5 damage and ignores DEF."},
+      {t:"gambit", n:"Setting The Route",      c:"1 action + 2 Stress (2×/mission)",d:"Declare dash sequence through enemies within 3 tiles. Damage pool 14, split however. Order cannot change.\n\nIf last enemy killed → Stealthed until Nikken moves or acts.\nIf any enemy survives → stays where route ended."},
+      {t:"quirk",  n:"Doesn't Watch Where He's Going",c:"",                        d:"Whenever Nikken moves, roll 1d6. On a 1, stops 1 tile short of destination and gains 1 Stress."},
+    ]},
+  michelle:{n:"Michelle",ti:"The Architect",ar:"Tinkerer × Mage",col:"#f0a500",hp:20,en:5,spd:1,fh:"Physical or Magic",
+    ab:[
+      {t:"basic",  n:"Basic Attack",       c:"",                                d:"4 damage. Tagged: if target triggers one of Michelle's fields this round, that field deals +2 damage."},
+      {t:"passive",n:"Calibration",        c:"each round start",                d:"Gain 1 Calibration token (max 2). Spend on Arc Needle or Snap Field for alternate effects."},
+      {t:"sig",    n:"Arc Needle",         c:"1 EN",                            d:"Deal 7 damage to enemy within 2 tiles.\n\nSpend 1 Calibration:\n• Pin — target Rooted for 1 round.\n• Arc — adjacent enemy takes 4 damage."},
+      {t:"util",   n:"Snap Field",         c:"1 EN",                            d:"Place field on tile within 2. First enemy to enter/start takes 5 damage and is Slowed.\n\nSpend 1 Calibration: adjacent enemies also take 3 damage when it triggers."},
+      {t:"power",  n:"Overload Array",     c:"2 EN",                            d:"Choose tile within 2 tiles. Enemies on that tile AND all adjacent tiles each take 8 damage."},
+      {t:"gambit", n:"Everything In Place",c:"1 action + 2 Stress (2×/mission)",d:"Place fields on up to 3 tiles within 2. First enemy to enter/start takes 6 damage and is Rooted.\n\nDownside: Michelle's abilities cost +1 EN on her next turn."},
+      {t:"quirk",  n:"Overloaded",         c:"",                                d:"If Michelle uses 2 abilities on her turn, she gains 1 Stress."},
+    ]},
+  sara:{n:"Sara",ti:"The Threadseer",ar:"Healer",col:"#06c49a",hp:24,en:4,spd:1,fh:"Physical (default)",
+    mission:[{id:"pattern",l:"Pattern Recognition",b:"Sneak preview of Event card; choose Brace or Steady response."},{id:"comfort",l:"Comfort Trail",b:"End of each round, ally within 2 tiles restores 2 HP."}],
+    ab:[
+      {t:"basic",  n:"Basic Attack",         c:"",                                d:"3 damage. Mend: after Sara damages an enemy, Sara or one ally on her tile restores 1 HP."},
+      {t:"passive",n:"Choose At Mission Start",c:"mission start choice",           d:"• Pattern Recognition — during Event Phase, Sara looks at Event card privately. Cannot describe it. Chooses Brace (ally +1 DEF) or Steady (ally removes 1 Stress), then reveals.\n\n• Comfort Trail — end of each round, one ally within 2 tiles restores 2 HP."},
+      {t:"sig",    n:"Predict",              c:"1 EN",                            d:"Mark enemy within 2 tiles. This round, next attack against that enemy by any ally deals +3 damage and ignores DEF. Mark fades if unused."},
+      {t:"power",  n:"Rearrange Fate",       c:"2 EN",                            d:"Choose one:\n• Move enemy within 2 tiles exactly 1 tile.\n• Move ally within 2 tiles exactly 1 tile (no opportunity attacks).\n• Swap adjacent enemy and ally."},
+      {t:"util",   n:"Calm Plan",            c:"1 EN",                            d:"One ally within 2 tiles removes 1 Stress and gains 1 EN."},
+      {t:"gambit", n:"I Saw This Coming",    c:"1 action + 2 Stress (2×/mission)",d:"Cancel one Event card immediately after revealed. Place on top of deck; resolves start of next Event Phase. Sara gives one abstract warning.\n\nDownside: Sara immediately gains 3 additional Stress (5 total)."},
+      {t:"quirk",  n:"Reaches Too Quickly",  c:"",                                d:"When any ally takes damage, Sara gains 1 Stress. Max 1 Stress per round from this source."},
+    ]},
+  micky:{n:"Micky",ti:"The Mountain Fool",ar:"Assassin × Brawler",col:"#e05a2b",hp:24,en:4,spd:2,fh:"Physical",
+    ab:[
+      {t:"basic",  n:"Basic Attack",           c:"",                                d:"4 damage. Dogpile: if target is adjacent to another enemy, one of those enemies takes 2 damage."},
+      {t:"passive",n:"It'll Work Out",          c:"each round start",                d:"• If adjacent to enemy: first time Micky hits that enemy this round, +2 damage.\n• If NOT adjacent: Micky may move 1 tile."},
+      {t:"sig",    n:"Throw Something",         c:"1 EN",                            d:"Deal 7 damage to enemy within 2 tiles. If target adjacent to another enemy:\n• +2 to target (9 total), OR\n• 3 damage to that adjacent enemy."},
+      {t:"util",   n:"Get In There",            c:"1 EN",                            d:"Move up to 2 tiles toward an enemy. If Micky ends adjacent to an enemy, his next attack this turn ignores DEF."},
+      {t:"power",  n:"Full Send",               c:"2 EN",                            d:"Move to tile with enemy. Deal 10 damage to one; others take 4. Tile coated in chalk until next turn: enemies Slowed, attacks deal 2 less damage."},
+      {t:"gambit", n:"JUST GO",                 c:"1 action + 2 Stress (2×/mission)",d:"Move up to 2 tiles to tile with enemies. 15 damage to one, 6 to each other. Chalk covers tile (Slowed; attacks deal 3 less against Micky).\n\nDownside: cannot use abilities next turn."},
+      {t:"quirk",  n:"Not Taking It Seriously", c:"",                                d:"First ability each round: roll 1d6. On 1 or 2, ability still resolves but Micky gains 1 Stress."},
+    ]},
+  ahmed:{n:"Ahmed",ti:"The Steady Knife",ar:"Healer × Brawler",col:"#5a9e6f",hp:28,en:4,spd:1,fh:"Physical",
+    ab:[
+      {t:"basic",  n:"Basic Attack",         c:"",                                d:"4 damage. Steady Hands: if Ahmed is Together with an ally, that ally gains +1 DEF until end of round."},
+      {t:"passive",n:"Feed The Living",       c:"each round end",                  d:"One ally on Ahmed's tile restores 2 HP. If that ally was at half HP or less, the group gains 1 Morale (max 1 per round from this source)."},
+      {t:"sig",    n:"Knife Work",            c:"1 EN",                            d:"Deal 7 damage to enemy on Ahmed's tile. If target was already damaged, Ahmed or ally on his tile restores 2 HP."},
+      {t:"util",   n:"Quick Rations",         c:"1 EN",                            d:"One ally on Ahmed's tile or adjacent: restores 1 EN OR removes 1 Stress."},
+      {t:"power",  n:"Protective Instinct",   c:"2 EN",                            d:"Deal 8 damage to each enemy on Ahmed's tile. Until start of Ahmed's next turn, Ahmed and allies on his tile take 2 less damage."},
+      {t:"gambit", n:"Sit. Eat.",             c:"1 action + 2 Stress (2×/mission)",d:"Allies within 2 tiles restore 6 HP and remove 1 Stress.\n\nDownside: Ahmed cannot use abilities next turn (can still Move, Interact, Assist, and Basic Attack)."},
+      {t:"quirk",  n:"Protective To A Fault", c:"",                                d:"End of round: if Ahmed was Together with a wounded ally and did NOT deal damage to an enemy, he gains 1 Stress."},
+    ]},
+};
+const ORDER=["daniel","matilda","vivi","petter","nikken","michelle","sara","micky","ahmed"];
+const ET={
+  grunt:{l:"Grunt",col:"#686a72",bg:"rgba(104,106,114,0.18)",defHp:20,maxHp:60},
+  elite:{l:"Elite",col:"#d07820",bg:"rgba(208,120,32,0.18)", defHp:60,maxHp:120},
+  boss: {l:"Boss", col:"#c03030",bg:"rgba(192,48,48,0.18)",  defHp:100,maxHp:200},
+};
+
+// ── PRIMITIVES ───────────────────────────────────────────────────────────────
+const TS=(x={})=>({cursor:"pointer",border:"none",outline:"none",fontFamily:"inherit",touchAction:"manipulation",WebkitTapHighlightColor:"transparent",...x});
+function AdjBtn({onClick,children,size=44,col=TXT}){
+  return <button onClick={onClick} style={TS({width:size,height:size,borderRadius:8,background:SURF,border:`1px solid ${BORD}`,color:col,fontSize:size>36?20:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0})}>{children}</button>;
+}
+function Bar({v,max,col,h=8}){
+  const p=max>0?Math.max(0,Math.min(1,v/max)):0;
+  return <div style={{flex:1,height:h,background:BORD,borderRadius:4,overflow:"hidden"}}><div style={{width:`${p*100}%`,height:"100%",background:`linear-gradient(90deg,${col}88,${col})`,borderRadius:4,transition:"width 0.15s ease"}}/></div>;
+}
+function Pips({n,filled,col,size=15}){
+  return <div style={{display:"flex",gap:3}}>{Array.from({length:n}).map((_,i)=><div key={i} style={{width:size,height:size,borderRadius:3,background:i<filled?col:"transparent",border:`1.5px solid ${i<filled?col:BORD}`,transition:"background 0.1s"}}/>)}</div>;
+}
+
+// ── LANTERN SVG ──────────────────────────────────────────────────────────────
+function LanternSVG(){
+  return(
+    <svg viewBox="0 0 120 240" xmlns="http://www.w3.org/2000/svg" style={{width:110,height:220,filter:"drop-shadow(0 0 18px rgba(240,160,32,0.5))"}}>
+      <defs>
+        <radialGradient id="ig" cx="50%" cy="55%"><stop offset="0%" stopColor="#ffe090" stopOpacity="1"/><stop offset="45%" stopColor="#f08020" stopOpacity="0.85"/><stop offset="100%" stopColor="#c04000" stopOpacity="0.15"/></radialGradient>
+        <radialGradient id="fg" cx="50%" cy="0%"><stop offset="0%" stopColor="#f09020" stopOpacity="0.7"/><stop offset="100%" stopColor="#f09020" stopOpacity="0"/></radialGradient>
+      </defs>
+      {/* Ring */}
+      <ellipse cx="60" cy="15" rx="16" ry="11" fill="none" stroke="#b09040" strokeWidth="3.5"/>
+      <rect x="55" y="15" width="10" height="16" fill="#9a7830"/>
+      {/* Cap */}
+      <polygon points="28,31 92,31 98,48 22,48" fill="#7a6028"/>
+      {[40,55,65,80].map((x,i)=><polygon key={i} points={`${x-5},31 ${x},17 ${x+5},31`} fill="#c89a3a"/>)}
+      {/* Glass glow body */}
+      <rect x="24" y="48" width="72" height="148" rx="3" fill="url(#ig)" opacity="0.92">
+        <animate attributeName="opacity" values="0.92;1;0.88;0.96;0.92" dur="0.9s" repeatCount="indefinite"/>
+      </rect>
+      {/* Iron verticals */}
+      {[24,43,60,77,96].map((x,i)=><line key={i} x1={x} y1="48" x2={x} y2="196" stroke="#9a7830" strokeWidth={i===0||i===4?4:2}/>)}
+      {/* Iron horizontals */}
+      {[90,130,170].map((y,i)=><line key={i} x1="24" y1={y} x2="96" y2={y} stroke="#9a7830" strokeWidth="2.5"/>)}
+      {/* Gothic arch tops */}
+      <path d="M43,48 Q60,68 77,48" fill="none" stroke="#9a7830" strokeWidth="2"/>
+      <path d="M24,48 Q34,64 43,48" fill="none" stroke="#9a7830" strokeWidth="1.5"/>
+      <path d="M77,48 Q87,64 96,48" fill="none" stroke="#9a7830" strokeWidth="1.5"/>
+      {/* 8-pointed star */}
+      <path d="M60,108 l3,9 7-3-5,7 9,3-9,2 3,9-8-6-8,6 3-9-9-2 9-3-5-7 7,3Z" fill="#ffd060">
+        <animate attributeName="opacity" values="0.7;1;0.55;0.88;0.7" dur="1.3s" repeatCount="indefinite"/>
+      </path>
+      {/* Outer flame */}
+      <ellipse cx="60" cy="147" rx="14" ry="18" fill="#ff8018" opacity="0.85" style={{transformOrigin:"60px 147px",animation:"flameDance 0.35s ease-in-out infinite"}}/>
+      {/* Inner bright core */}
+      <ellipse cx="60" cy="145" rx="7" ry="11" fill="#fff4a0" opacity="0.9" style={{transformOrigin:"60px 145px",animation:"flameDance 0.28s ease-in-out infinite"}}/>
+      {/* Base */}
+      <rect x="20" y="196" width="80" height="13" rx="3" fill="#7a6028"/>
+      <rect x="15" y="209" width="90" height="7" rx="2" fill="#6a5020"/>
+      {/* Floor glow */}
+      <ellipse cx="60" cy="228" rx="55" ry="12" fill="url(#fg)">
+        <animate attributeName="opacity" values="0.8;1;0.6;0.85;0.8" dur="0.75s" repeatCount="indefinite"/>
+        <animate attributeName="rx" values="55;65;50;60;55" dur="0.9s" repeatCount="indefinite"/>
+      </ellipse>
+    </svg>
+  );
+}
+
+// ── NIGHT PARTICLES ──────────────────────────────────────────────────────────
+const NIGHT_PX = Array.from({length:28},(_,i)=>({
+  id:i, x:Math.random()*100, y:Math.random()*100,
+  sz:Math.random()*2+0.8, dur:Math.random()*7+4, delay:Math.random()*-10,
+  op:Math.random()*0.5+0.2,
+  dx:`${(Math.random()-.5)*40}px`, dy:`${-70-Math.random()*50}px`,
+  col: Math.random()<0.7?"#c8d8ff":"#f0c080",
+}));
+function NightParticles(){
+  return(
+    <div style={{position:"fixed",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:0}}>
+      {NIGHT_PX.map(p=>(
+        <div key={p.id} style={{
+          position:"absolute",left:`${p.x}%`,top:`${p.y}%`,
+          width:p.sz,height:p.sz,borderRadius:"50%",background:p.col,
+          "--op":p.op,"--dx":p.dx,"--dy":p.dy,
+          animation:`floatUp ${p.dur}s linear ${p.delay}s infinite`,
+        }}/>
+      ))}
+    </div>
+  );
+}
+
+// ── EMBER PARTICLES (per character card) ─────────────────────────────────────
+function Embers({col,count=8}){
+  const embers=Array.from({length:count},(_,i)=>({
+    id:i, x:5+Math.random()*90, y:15+Math.random()*70,
+    sz:Math.random()*4+2, dur:Math.random()*2.5+1.5, delay:Math.random()*-3,
+    ex:`${(Math.random()-.5)*60}px`,
+  }));
+  return(
+    <div style={{position:"absolute",inset:0,overflow:"hidden",pointerEvents:"none"}}>
+      {embers.map(e=>(
+        <div key={e.id} style={{
+          position:"absolute",left:`${e.x}%`,bottom:`${e.y}%`,
+          width:e.sz,height:e.sz,borderRadius:"50%",background:col,
+          boxShadow:`0 0 4px ${col}`,
+          "--ex":e.ex,
+          animation:`emberRise ${e.dur}s ease-out ${e.delay}s infinite`,
+        }}/>
+      ))}
+    </div>
+  );
+}
+
+// ── HOME SCREEN ──────────────────────────────────────────────────────────────
+function HomeScreen({onPlayer,onLeader}){
+  return(
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 24px",gap:32,position:"relative",overflow:"hidden"}}>
+      <NightParticles/>
+      <div style={{textAlign:"center",zIndex:1}}>
+        <div style={{fontSize:12,letterSpacing:5,color:MUT,fontFamily:"'Cinzel',serif",marginBottom:12,textTransform:"uppercase"}}>Companion App</div>
+        <LanternSVG/>
+        <div style={{marginTop:16}}>
+          <div style={{fontSize:13,letterSpacing:4,color:"#c8a951",fontFamily:"'Cinzel',serif",fontWeight:600,marginBottom:4}}>THE</div>
+          <div style={{fontSize:46,fontWeight:900,letterSpacing:3,color:TXT,fontFamily:"'Cinzel Decorative',serif",lineHeight:0.95,textTransform:"uppercase"}}>LAST<br/>LANTERN</div>
+        </div>
+        <div style={{width:60,height:2,margin:"18px auto 0",background:"linear-gradient(90deg,transparent,#c8a951,transparent)"}}/>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:12,width:"100%",maxWidth:340,zIndex:1}}>
+        {[{icon:"⚔",label:"PLAYER",sub:"Track your survivor",fn:onPlayer},{icon:"👁",label:"DUNGEON MASTER",sub:"Manage the encounter",fn:onLeader}].map(({icon,label,sub,fn})=>(
+          <button key={label} onClick={fn} style={TS({background:"rgba(17,20,32,0.85)",border:`1px solid ${BORD}`,borderRadius:12,padding:"20px",textAlign:"left",color:TXT,display:"flex",alignItems:"center",gap:16,backdropFilter:"blur(8px)"})}>
+            <span style={{fontSize:26}}>{icon}</span>
+            <div style={{flex:1}}>
+              <div style={{fontSize:13,fontWeight:700,letterSpacing:2,fontFamily:"'Cinzel',serif"}}>{label}</div>
+              <div style={{fontSize:11,color:MUT,marginTop:3}}>{sub}</div>
+            </div>
+            <span style={{color:MUT,fontSize:18}}>›</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+
+
+// ── CHARACTER SELECT ─────────────────────────────────────────────────────────
+function CharSelectScreen({onBack,onSelect}){
+  return(
+    <div style={{height:"100vh",display:"flex",flexDirection:"column"}}>
+      <div style={{flexShrink:0,display:"flex",alignItems:"center",padding:"14px 16px",borderBottom:`1px solid ${BORD}`,background:CARD,gap:12}}>
+        <button onClick={onBack} style={TS({background:"none",color:MUT,fontSize:22,padding:"4px 8px"})}>‹</button>
+        <span style={{fontSize:10,letterSpacing:3,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif"}}>SELECT SURVIVOR</span>
+      </div>
+      <div style={{flex:1,overflowY:"auto"}}>
+        {ORDER.map(id=>{
+          const c=CH[id];
+          return(
+            <button key={id} onClick={()=>onSelect(id)} style={TS({
+              display:"flex",alignItems:"center",
+              width:"100%",minHeight:96,position:"relative",overflow:"hidden",
+              background:`linear-gradient(100deg,#090b12 0%,${c.col}20 55%,${c.col}12 100%)`,
+              borderBottom:`1px solid ${BORD}`,
+              borderLeft:`5px solid ${c.col}`,
+              textAlign:"left",color:TXT,
+            })}>
+              <Embers col={c.col} count={5}/>
+              {/* Name + info */}
+              <div style={{flex:1,zIndex:1,padding:"0 12px 0 16px"}}>
+                <div style={{fontSize:24,fontWeight:900,color:c.col,fontFamily:"'Cinzel Decorative',serif",lineHeight:1.1,textShadow:`0 0 24px ${c.col}55`}}>{c.n}</div>
+                <div style={{fontSize:11,color:TXT,fontFamily:"'Cinzel',serif",letterSpacing:1,marginTop:3,opacity:0.85}}>{c.ti}</div>
+                <div style={{fontSize:9.5,color:MUT,marginTop:2}}>{c.ar}</div>
+              </div>
+              {/* Stats — horizontal trio */}
+              <div style={{flexShrink:0,display:"flex",gap:12,alignItems:"center",paddingRight:4,zIndex:1}}>
+                {[["HP",c.hp,"#c8a951"],["EN",c.en,EN_C],["SPD",c.spd,MUT]].map(([k,v,sc])=>(
+                  <div key={k} style={{textAlign:"center",lineHeight:1}}>
+                    <div style={{fontSize:18,fontWeight:900,color:sc,fontFamily:"'Cinzel',serif"}}>{v}</div>
+                    <div style={{fontSize:8,color:MUT,letterSpacing:1.5,marginTop:2}}>{k}</div>
+                  </div>
+                ))}
+              </div>
+              {/* Arrow */}
+              <div style={{color:`${c.col}66`,fontSize:20,margin:"0 14px 0 10px",zIndex:1,flexShrink:0}}>›</div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── 3D DICE MODAL ────────────────────────────────────────────────────────────
+const DOTS={1:[[50,50]],2:[[27,27],[73,73]],3:[[27,27],[50,50],[73,73]],4:[[27,27],[73,27],[27,73],[73,73]],5:[[27,27],[73,27],[50,50],[27,73],[73,73]],6:[[27,27],[73,27],[27,50],[73,50],[27,73],[73,73]]};
+const FACE_T={"1":"translateZ(45px)","6":"rotateY(180deg) translateZ(45px)","2":"rotateY(90deg) translateZ(45px)","5":"rotateY(-90deg) translateZ(45px)","3":"rotateX(-90deg) translateZ(45px)","4":"rotateX(90deg) translateZ(45px)"};
+// Container rotation to show face: 1→(0,0), 6→(0,180), 2→(0,-90), 5→(0,90), 3→(90,0), 4→(-90,0)
+const FACE_ROT={1:[0,0],2:[0,-90],3:[90,0],4:[-90,0],5:[0,90],6:[0,180]};
+function DiceModal({onDismiss,onResult}){
+  const cubeRef=useRef(null);
+  const [done,setDone]=useState(false);
+  const [res,setRes]=useState(null);
+  useEffect(()=>{
+    const result=Math.floor(Math.random()*6)+1;
+    const [fr,fy]=FACE_ROT[result];
+    const spins=3;
+    const tX=fr+360*spins, tY=fy+360*spins;
+    const t0=Date.now(), dur=1400;
+    let raf;
+    function frame(){
+      const t=Math.min((Date.now()-t0)/dur,1);
+      const ease=1-Math.pow(1-t,3);
+      if(cubeRef.current) cubeRef.current.style.transform=`rotateX(${ease*tX}deg) rotateY(${ease*tY}deg)`;
+      if(t<1){raf=requestAnimationFrame(frame);}
+      else{setDone(true);setRes(result);onResult(result);}
+    }
+    raf=requestAnimationFrame(frame);
+    return()=>cancelAnimationFrame(raf);
+  },[]);
+  return(
+    <div onClick={onDismiss} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.82)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",zIndex:100,gap:20}}>
+      <div style={{perspective:"500px"}}>
+        <div ref={cubeRef} style={{width:90,height:90,position:"relative",transformStyle:"preserve-3d",transform:"rotateX(0deg) rotateY(0deg)"}}>
+          {[1,2,3,4,5,6].map(f=>(
+            <div key={f} style={{position:"absolute",width:90,height:90,transform:FACE_T[f],background:"#f5eed8",borderRadius:14,border:"3px solid #a08040",backfaceVisibility:"hidden",boxShadow:"inset 0 0 12px rgba(0,0,0,0.12)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+              <div style={{position:"relative",width:"100%",height:"100%"}}>
+                {DOTS[f].map(([x,y],i)=><div key={i} style={{position:"absolute",width:14,height:14,borderRadius:"50%",background:"#1a1200",left:`${x}%`,top:`${y}%`,transform:"translate(-50%,-50%)"}}/>)}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+      {done&&res&&(
+        <div style={{fontSize:36,fontWeight:900,fontFamily:"'Cinzel Decorative',serif",color:res<=2?"#d44040":res>=5?"#2db86a":"#c8a951",animation:"fadeIn 0.3s ease-out both"}}>{res}</div>
+      )}
+      <div style={{fontSize:11,color:MUT,letterSpacing:1}}>tap to dismiss</div>
+    </div>
+  );
+}
+
+// ── ABILITY CARD ─────────────────────────────────────────────────────────────
+function AbilityCard({ab,idx,expanded,onToggle}){
+  const st=AT[ab.t]||AT.basic;
+  const open=expanded===idx;
+  return(
+    <div style={{background:CARD,border:`1px solid ${BORD}`,borderRadius:10,overflow:"hidden",marginBottom:8}}>
+      <button onClick={()=>onToggle(idx)} style={TS({width:"100%",padding:"12px 14px",background:"none",color:TXT,display:"flex",alignItems:"center",gap:10,textAlign:"left"})}>
+        <span style={{fontSize:8,fontWeight:700,letterSpacing:1.5,flexShrink:0,color:st.c,background:`${st.c}18`,border:`1px solid ${st.c}44`,padding:"3px 7px",borderRadius:4}}>{st.l}</span>
+        <span style={{flex:1,fontSize:13,fontWeight:600,lineHeight:1.3}}>{ab.n}</span>
+        {ab.c&&<span style={{fontSize:9.5,color:MUT,background:SURF,padding:"2px 7px",borderRadius:4,flexShrink:0}}>{ab.c}</span>}
+        <span style={{color:MUT,fontSize:13,flexShrink:0,display:"inline-block",transform:open?"rotate(90deg)":"none",transition:"transform 0.15s"}}>›</span>
+      </button>
+      {open&&<div style={{padding:"0 14px 14px",borderTop:`1px solid ${BORD}`}}><div style={{fontSize:13,color:TXT,lineHeight:1.75,whiteSpace:"pre-wrap",paddingTop:10}}>{ab.d}</div></div>}
+    </div>
+  );
+}
+
+// ── PLAYER SCREEN ────────────────────────────────────────────────────────────
+const STRESS_ANIM=["","sp1","sp2","sp3","sp4"];
+function PlayerScreen({char,hp,en,stress,expanded,missionMode,onHp,onEn,onStress,onExpand,onMission,onBack}){
+  const [diceModal,setDiceModal]=useState(false);
+  const [diceResult,setDiceResult]=useState(null);
+  const pct=char.hp>0?hp/char.hp:0;
+  const hpColor=hpC(pct);
+  const stressClass=stress>0?STRESS_ANIM[Math.min(stress,4)]:"";
+  const sorted=[...char.ab].sort((a,b)=>AB_ORDER.indexOf(a.t)-AB_ORDER.indexOf(b.t));
+  return(
+    <div className={stressClass} style={{height:"100vh",display:"flex",flexDirection:"column",background:BG}}>
+      {diceModal&&<DiceModal onDismiss={()=>setDiceModal(false)} onResult={r=>setDiceResult(r)}/>}
+      {/* Header */}
+      <div style={{flexShrink:0,display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderBottom:`1px solid ${BORD}`,background:CARD}}>
+        <button onClick={onBack} style={TS({background:"none",color:MUT,fontSize:22,padding:"4px 8px"})}>‹</button>
+        <div style={{flex:1}}>
+          <div style={{fontSize:19,fontWeight:900,color:char.col,fontFamily:"'Cinzel Decorative',serif",lineHeight:1}}>{char.n}</div>
+          <div style={{fontSize:10,color:MUT,letterSpacing:1.5,fontFamily:"'Cinzel',serif",marginTop:1}}>{char.ti.toUpperCase()}</div>
+        </div>
+        <span style={{fontSize:9.5,color:MUT,background:SURF,padding:"3px 8px",borderRadius:4}}>{char.ar}</span>
+      </div>
+
+      {/* Scrollable content */}
+      <div style={{flex:1,overflowY:"auto"}}>
+        {/* Sticky stats */}
+        <div style={{position:"sticky",top:0,zIndex:10,background:CARD,borderBottom:`1px solid ${BORD}`,padding:"16px 16px 14px"}}>
+          {/* HP */}
+          <div style={{marginBottom:14}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:7}}>
+              <span style={{fontSize:10,letterSpacing:2.5,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif"}}>HP</span>
+              <span style={{fontSize:18,fontWeight:900,color:hpColor,fontVariantNumeric:"tabular-nums"}}>{hp} / {char.hp}</span>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+              <AdjBtn onClick={()=>onHp(-1)}>−</AdjBtn><Bar v={hp} max={char.hp} col={hpColor} h={11}/><AdjBtn onClick={()=>onHp(+1)}>+</AdjBtn>
+            </div>
+          </div>
+          {/* EN + Stress */}
+          <div style={{display:"flex",gap:16}}>
+            <div style={{flex:1}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:7}}>
+                <span style={{fontSize:10,letterSpacing:2,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif"}}>ENERGY</span>
+                <span style={{fontSize:13,fontWeight:700,color:EN_C}}>{en}/{char.en}</span>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:7}}>
+                <AdjBtn onClick={()=>onEn(-1)} size={36}>−</AdjBtn><Pips n={char.en} filled={en} col={EN_C}/><AdjBtn onClick={()=>onEn(+1)} size={36}>+</AdjBtn>
+              </div>
+            </div>
+            <div style={{flex:1}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:7}}>
+                <span style={{fontSize:10,letterSpacing:2,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif"}}>STRESS</span>
+                <span style={{fontSize:13,fontWeight:700,color:stress>=4?"#ff4040":ST_C}}>{stress}/5</span>
+              </div>
+              <div style={{display:"flex",alignItems:"center",gap:7}}>
+                <AdjBtn onClick={()=>onStress(-1)} size={36}>−</AdjBtn><Pips n={5} filled={stress} col={stress>=4?"#ff4040":ST_C}/><AdjBtn onClick={()=>onStress(+1)} size={36}>+</AdjBtn>
+              </div>
+            </div>
+          </div>
+          {/* Dice */}
+          <div style={{display:"flex",alignItems:"center",gap:12,marginTop:14}}>
+            <button onClick={()=>setDiceModal(true)} style={TS({background:SURF,border:`1px solid ${BORD}`,borderRadius:8,padding:"8px 16px",color:TXT,fontSize:11,fontWeight:700,letterSpacing:1.5,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:8})}>
+              <span style={{fontSize:18}}>⚄</span> ROLL d6
+            </button>
+            {diceResult&&<span style={{fontSize:26,fontWeight:900,color:diceResult<=2?"#d44040":diceResult>=5?"#2db86a":"#c8a951",fontFamily:"'Cinzel Decorative',serif"}}>{diceResult}</span>}
+          </div>
+        </div>
+
+        {/* Mission mode selector (for chars with choices) */}
+        {char.mission&&(
+          <div style={{padding:"14px 16px 0"}}>
+            <div style={{fontSize:9,letterSpacing:2.5,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",marginBottom:10}}>MISSION MODE</div>
+            <div style={{display:"flex",gap:8,marginBottom:4}}>
+              {char.mission.map(m=>(
+                <button key={m.id} onClick={()=>onMission(m.id)} style={TS({flex:1,padding:"10px 10px",background:missionMode===m.id?`${char.col}22`:CARD,border:`1.5px solid ${missionMode===m.id?char.col:BORD}`,borderRadius:9,textAlign:"left",color:missionMode===m.id?char.col:MUT,transition:"all 0.15s"})}>
+                  <div style={{fontSize:11,fontWeight:700,fontFamily:"'Cinzel',serif",letterSpacing:0.5}}>{m.l}</div>
+                  <div style={{fontSize:10,marginTop:4,lineHeight:1.4,color:missionMode===m.id?TXT:MUT}}>{m.b}</div>
+                </button>
+              ))}
+            </div>
+            {!missionMode&&<div style={{fontSize:10,color:"#c8a951",marginBottom:4,textAlign:"center"}}>⚠ Choose your mode before the mission begins</div>}
+            <div style={{height:1,background:BORD,margin:"12px 0"}}/>
+          </div>
+        )}
+
+        {/* Abilities */}
+        <div style={{padding:char.mission?"0 14px 14px":"14px"}}>
+          {!char.mission&&<div style={{fontSize:9,letterSpacing:2.5,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",marginBottom:12}}>ABILITIES & QUIRK</div>}
+          {sorted.map((ab,i)=><AbilityCard key={i} ab={ab} idx={i} expanded={expanded} onToggle={onExpand}/>)}
+          <div style={{fontSize:10,color:MUT,textAlign:"center",padding:"8px 0 24px",letterSpacing:1}}>Final Hollow type: {char.fh}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── ENEMY CARD ───────────────────────────────────────────────────────────────
+function EnemyCard({enemy,onAdjust,onRemove}){
+  const et=ET[enemy.type];
+  const hpColor=hpC(enemy.maxHp>0?enemy.hp/enemy.maxHp:0);
+  return(
+    <div style={{background:CARD,border:`1px solid ${BORD}`,borderLeft:`3px solid ${et.col}`,borderRadius:10,padding:"14px",marginBottom:10,opacity:enemy.hp===0?0.5:1}}>
+      <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+        <span style={{fontSize:9,fontWeight:700,letterSpacing:1,color:et.col,background:et.bg,padding:"3px 8px",borderRadius:4,flexShrink:0}}>{et.l}</span>
+        <span style={{fontSize:14,fontWeight:700,flex:1}}>{enemy.name}</span>
+        {enemy.hp===0&&<span style={{fontSize:9,color:ST_C,letterSpacing:1.5,fontWeight:700}}>DOWNED</span>}
+        <button onClick={()=>onRemove(enemy.id)} style={TS({background:"none",color:MUT,fontSize:16,padding:"3px 7px"})}>✕</button>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:7}}>
+        <span style={{fontSize:10,letterSpacing:2,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif"}}>HP</span>
+        <span style={{fontSize:16,fontWeight:900,color:hpColor,fontVariantNumeric:"tabular-nums"}}>{enemy.hp} / {enemy.maxHp}</span>
+      </div>
+      <Bar v={enemy.hp} max={enemy.maxHp} col={hpColor} h={10}/>
+      <div style={{display:"flex",gap:6,marginTop:12}}>
+        {[-10,-5,-1].map(d=><AdjBtn key={d} onClick={()=>onAdjust(enemy.id,d)} size={46} col={ST_C}>{d}</AdjBtn>)}
+        {[+1,+5,+10].map(d=><AdjBtn key={d} onClick={()=>onAdjust(enemy.id,d)} size={46} col="#2db86a">+{d}</AdjBtn>)}
+      </div>
+    </div>
+  );
+}
+
+// ── LEADER SCREEN ────────────────────────────────────────────────────────────
+function LeaderScreen({enemies,showAdd,newType,newName,nextId,onShowAdd,onHideAdd,onSetType,onSetName,onAdd,onRemove,onAdjust,onBack}){
+  return(
+    <div style={{height:"100vh",display:"flex",flexDirection:"column"}}>
+      <div style={{flexShrink:0,display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderBottom:`1px solid ${BORD}`,background:CARD}}>
+        <button onClick={onBack} style={TS({background:"none",color:MUT,fontSize:22,padding:"4px 8px"})}>‹</button>
+        <span style={{fontSize:11,letterSpacing:3,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",flex:1}}>ENCOUNTER</span>
+        <span style={{fontSize:11,color:MUT,marginRight:8}}>{enemies.length} active</span>
+        <button onClick={onShowAdd} style={TS({background:SURF,border:`1px solid ${BORD}`,borderRadius:8,padding:"8px 14px",color:TXT,fontSize:11,fontWeight:700,fontFamily:"'Cinzel',serif",letterSpacing:1})}>+ ADD</button>
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:14}}>
+        {enemies.length===0?(
+          <div style={{textAlign:"center",paddingTop:60,color:MUT}}>
+            <div style={{fontSize:32,marginBottom:12}}>⚔</div>
+            <div style={{fontSize:14,letterSpacing:1,fontFamily:"'Cinzel',serif"}}>NO ENEMIES</div>
+            <div style={{fontSize:12,marginTop:6}}>Tap + ADD to begin the encounter</div>
+          </div>
+        ):enemies.map(e=><EnemyCard key={e.id} enemy={e} onAdjust={onAdjust} onRemove={onRemove}/>)}
+      </div>
+      {showAdd&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.65)",display:"flex",flexDirection:"column",justifyContent:"flex-end",zIndex:50}} onClick={e=>{if(e.target===e.currentTarget)onHideAdd();}}>
+          <div style={{background:CARD,borderTop:`1px solid ${BORD}`,borderTopLeftRadius:16,borderTopRightRadius:16,padding:"24px 20px 36px",maxWidth:480,width:"100%",margin:"0 auto"}}>
+            <div style={{fontSize:11,letterSpacing:3,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",marginBottom:20}}>ADD ENEMY</div>
+            <div style={{marginBottom:16}}>
+              <div style={{fontSize:10,color:MUT,letterSpacing:1.5,marginBottom:8}}>TYPE</div>
+              <div style={{display:"flex",gap:8}}>
+                {Object.entries(ET).map(([k,v])=>(
+                  <button key={k} onClick={()=>onSetType(k)} style={TS({flex:1,padding:"11px 0",background:newType===k?`${v.col}22`:SURF,border:`1.5px solid ${newType===k?v.col:BORD}`,borderRadius:8,color:newType===k?v.col:MUT,fontSize:12,fontWeight:700,letterSpacing:1})}>{v.l}</button>
+                ))}
+              </div>
+            </div>
+            <div style={{marginBottom:16}}>
+              <div style={{fontSize:10,color:MUT,letterSpacing:1.5,marginBottom:8}}>NAME (optional)</div>
+              <input value={newName} onChange={e=>onSetName(e.target.value)} placeholder={`${ET[newType].l} ${nextId}`} style={{width:"100%",background:SURF,border:`1px solid ${BORD}`,borderRadius:8,padding:"12px 14px",color:TXT,fontSize:14,fontFamily:"inherit",outline:"none"}}/>
+            </div>
+            <div style={{marginBottom:20,fontSize:12,color:MUT}}>Starting HP: <span style={{color:TXT,fontWeight:700}}>{ET[newType].defHp}</span> · Max: <span style={{color:TXT,fontWeight:700}}>{ET[newType].maxHp}</span></div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={onHideAdd} style={TS({flex:1,padding:"14px 0",background:SURF,border:`1px solid ${BORD}`,borderRadius:10,color:MUT,fontSize:13,fontWeight:700})}>Cancel</button>
+              <button onClick={onAdd} style={TS({flex:2,padding:"14px 0",background:"rgba(45,184,106,0.12)",border:"1px solid rgba(45,184,106,0.4)",borderRadius:10,color:"#2db86a",fontSize:13,fontWeight:700})}>Add to Encounter</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── APP ───────────────────────────────────────────────────────────────────────
+function App(){
+  const [screen,setScreen]=useState("home");
+  const [charId,setCharId]=useState(null);
+  const [hp,setHp]=useState(0);
+  const [en,setEn]=useState(0);
+  const [stress,setStress]=useState(0);
+  const [expanded,setExpanded]=useState(null);
+  const [missionMode,setMissionMode]=useState(null);
+  const [enemies,setEnemies]=useState([]);
+  const [showAdd,setShowAdd]=useState(false);
+  const [newType,setNewType]=useState("grunt");
+  const [newName,setNewName]=useState("");
+  const [eid,setEid]=useState(1);
+
+  const char=charId?CH[charId]:null;
+
+  function pickChar(id){
+    const c=CH[id];
+    setCharId(id);setHp(c.hp);setEn(c.en);setStress(0);
+    setExpanded(null);setMissionMode(null);
+    setScreen("player");
+  }
+  function addEnemy(){
+    const et=ET[newType];
+    const name=newName.trim()||`${et.l} ${eid}`;
+    setEnemies(prev=>[...prev,{id:eid,name,type:newType,hp:et.defHp,maxHp:et.defHp}]);
+    setEid(i=>i+1);setNewName("");setShowAdd(false);
+  }
+  function adjustEHP(id,d){
+    setEnemies(prev=>prev.map(e=>e.id===id?{...e,hp:Math.max(0,Math.min(e.maxHp,e.hp+d))}:e));
+  }
+
+  const root={fontFamily:"system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",background:BG,color:TXT,minHeight:"100vh",maxWidth:480,margin:"0 auto"};
+
+  return(
+    <div style={root} className="fade-in">
+      {screen==="home"&&<HomeScreen onPlayer={()=>setScreen("char-select")} onLeader={()=>{setEnemies([]);setShowAdd(false);setScreen("leader");}}/>}
+      {screen==="char-select"&&<CharSelectScreen onBack={()=>setScreen("home")} onSelect={pickChar}/>}
+      {screen==="player"&&char&&(
+        <PlayerScreen char={char} hp={hp} en={en} stress={stress} expanded={expanded} missionMode={missionMode}
+          onHp={d=>setHp(h=>Math.max(0,Math.min(char.hp,h+d)))}
+          onEn={d=>setEn(e=>Math.max(0,Math.min(char.en,e+d)))}
+          onStress={d=>setStress(s=>Math.max(0,Math.min(5,s+d)))}
+          onExpand={i=>setExpanded(prev=>prev===i?null:i)}
+          onMission={setMissionMode}
+          onBack={()=>setScreen("char-select")}/>
+      )}
+      {screen==="leader"&&(
+        <LeaderScreen enemies={enemies} showAdd={showAdd} newType={newType} newName={newName} nextId={eid}
+          onShowAdd={()=>setShowAdd(true)} onHideAdd={()=>setShowAdd(false)}
+          onSetType={setNewType} onSetName={setNewName} onAdd={addEnemy}
+          onRemove={id=>setEnemies(prev=>prev.filter(e=>e.id!==id))}
+          onAdjust={adjustEHP} onBack={()=>setScreen("home")}/>
+      )}
+    </div>
+  );
+}
+
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>
