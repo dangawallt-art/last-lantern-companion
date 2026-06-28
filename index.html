@@ -11,6 +11,9 @@
   <meta name="apple-mobile-web-app-title" content="Last Lantern"/>
   <meta name="theme-color" content="#090b12"/>
   <link rel="manifest" href="manifest.json"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -69,6 +72,9 @@
     const { useState, useEffect, useRef } = React;
 
 
+    const { useState, useEffect, useRef } = React;
+
+
 // ── TOKENS ──────────────────────────────────────────────────────────────────
 const BG="#090b12",CARD="#111420",SURF="#181d2c",BORD="#242a3a",TXT="#dcd8cc",MUT="#626574";
 const EN_C="#4a8fd6",ST_C="#c84040";
@@ -119,6 +125,7 @@ const CH={
       {t:"quirk",  n:"Stillness Annoys Her",   c:"",                                d:"End of any round Vivi did NOT deal damage to an enemy, she gains 1 Stress."},
     ]},
   petter:{n:"Petter",ti:"The Orator",ar:"Tank × Brawler",col:"#3a7cb5",hp:36,en:3,spd:1,fh:"Physical",
+    mission:[{id:"brace",l:"Brace",b:"Chosen ally within 2 tiles gains +1 DEF this round."},{id:"steady",l:"Steady",b:"Chosen ally within 2 tiles removes 1 Stress."}],
     ab:[
       {t:"basic",  n:"Basic Attack",     c:"",                                d:"4 damage. Brace: one ally on Petter's tile gains +1 DEF until end of round."},
       {t:"passive",n:"Incident Command", c:"each round start",                d:"Choose one ally within 2 tiles:\n• Brace — ally gains +1 DEF this round.\n• Steady — ally removes 1 Stress.\n\nIf group resolves an Event without losing Morale, Petter restores 1 EN."},
@@ -291,6 +298,37 @@ function Embers({col,count=8}){
   );
 }
 
+
+// ── PER-CHARACTER PARTICLES ──────────────────────────────────────────────────
+const CHAR_PX = {};
+ORDER.forEach(id => {
+  const seed = id.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+  const rng = (n) => { const x = Math.sin(seed + n) * 10000; return x - Math.floor(x); };
+  CHAR_PX[id] = Array.from({length:18}, (_,i) => ({
+    id:i, x:rng(i)*100, y:rng(i+50)*100,
+    sz:rng(i+100)*2.5+0.8, dur:rng(i+200)*7+4,
+    delay:rng(i+300)*-12,
+    op:rng(i+400)*0.25+0.08,
+    dx:`${(rng(i+500)-.5)*28}px`, dy:`${-55-rng(i+600)*35}px`,
+  }));
+});
+function CharParticles({charId}){
+  const col=CH[charId].col;
+  return(
+    <div style={{position:"absolute",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:0}}>
+      {CHAR_PX[charId].map(p=>(
+        <div key={p.id} style={{
+          position:"absolute",left:`${p.x}%`,top:`${p.y}%`,
+          width:p.sz,height:p.sz,borderRadius:"50%",
+          background:col,boxShadow:`0 0 3px ${col}`,
+          "--op":p.op,"--dx":p.dx,"--dy":p.dy,
+          animation:`floatUp ${p.dur}s linear ${p.delay}s infinite`,
+        }}/>
+      ))}
+    </div>
+  );
+}
+
 // ── HOME SCREEN ──────────────────────────────────────────────────────────────
 function HomeScreen({onPlayer,onLeader}){
   return(
@@ -325,6 +363,11 @@ function HomeScreen({onPlayer,onLeader}){
 
 // ── CHARACTER SELECT ─────────────────────────────────────────────────────────
 function CharSelectScreen({onBack,onSelect}){
+  const [pressedId,setPressedId]=useState(null);
+  function handleSelect(id){
+    setPressedId(id);
+    setTimeout(()=>{ setPressedId(null); onSelect(id); },160);
+  }
   return(
     <div style={{height:"100vh",display:"flex",flexDirection:"column"}}>
       <div style={{flexShrink:0,display:"flex",alignItems:"center",padding:"14px 16px",borderBottom:`1px solid ${BORD}`,background:CARD,gap:12}}>
@@ -335,10 +378,12 @@ function CharSelectScreen({onBack,onSelect}){
         {ORDER.map(id=>{
           const c=CH[id];
           return(
-            <button key={id} onClick={()=>onSelect(id)} style={TS({
+            <button key={id} onPointerDown={()=>setPressedId(id)} onPointerUp={()=>handleSelect(id)} onPointerLeave={()=>setPressedId(null)} style={TS({
               display:"flex",alignItems:"center",
               width:"100%",minHeight:96,position:"relative",overflow:"hidden",
-              background:`linear-gradient(100deg,#090b12 0%,${c.col}20 55%,${c.col}12 100%)`,
+              background:pressedId===id?`linear-gradient(100deg,#090b12 0%,${c.col}30 55%,${c.col}20 100%)`:`linear-gradient(100deg,#090b12 0%,${c.col}20 55%,${c.col}12 100%)`,
+              transform:pressedId===id?"scale(0.985)":"scale(1)",
+              transition:"transform 0.12s ease, background 0.12s ease",
               borderBottom:`1px solid ${BORD}`,
               borderLeft:`5px solid ${c.col}`,
               textAlign:"left",color:TXT,
@@ -428,14 +473,18 @@ function AbilityCard({ab,idx,expanded,onToggle}){
         {ab.c&&<span style={{fontSize:9.5,color:MUT,background:SURF,padding:"2px 7px",borderRadius:4,flexShrink:0}}>{ab.c}</span>}
         <span style={{color:MUT,fontSize:13,flexShrink:0,display:"inline-block",transform:open?"rotate(90deg)":"none",transition:"transform 0.15s"}}>›</span>
       </button>
-      {open&&<div style={{padding:"0 14px 14px",borderTop:`1px solid ${BORD}`}}><div style={{fontSize:13,color:TXT,lineHeight:1.75,whiteSpace:"pre-wrap",paddingTop:10}}>{ab.d}</div></div>}
+      <div style={{maxHeight:open?"700px":"0",overflow:"hidden",transition:"max-height 0.38s cubic-bezier(0.4,0,0.2,1)",willChange:"max-height"}}>
+        <div style={{padding:"0 14px 14px",borderTop:`1px solid ${BORD}`}}>
+          <div style={{fontSize:13,color:TXT,lineHeight:1.75,whiteSpace:"pre-wrap",paddingTop:10}}>{ab.d}</div>
+        </div>
+      </div>
     </div>
   );
 }
 
 // ── PLAYER SCREEN ────────────────────────────────────────────────────────────
 const STRESS_ANIM=["","sp1","sp2","sp3","sp4"];
-function PlayerScreen({char,hp,en,stress,expanded,missionMode,onHp,onEn,onStress,onExpand,onMission,onBack}){
+function PlayerScreen({char,hp,en,stress,expanded,missionMode,onHp,onEn,onStress,onExpand,onMission,onBack,entering}){
   const [diceModal,setDiceModal]=useState(false);
   const [diceResult,setDiceResult]=useState(null);
   const pct=char.hp>0?hp/char.hp:0;
@@ -443,7 +492,9 @@ function PlayerScreen({char,hp,en,stress,expanded,missionMode,onHp,onEn,onStress
   const stressClass=stress>0?STRESS_ANIM[Math.min(stress,4)]:"";
   const sorted=[...char.ab].sort((a,b)=>AB_ORDER.indexOf(a.t)-AB_ORDER.indexOf(b.t));
   return(
-    <div className={stressClass} style={{height:"100vh",display:"flex",flexDirection:"column",background:BG}}>
+    <div className={`${stressClass}${entering?" slide-in":""}`} style={{height:"100vh",display:"flex",flexDirection:"column",background:BG,position:"relative",boxShadow:`inset 4px 0 32px ${char.col}18, inset -4px 0 32px ${char.col}18`}}>
+      <CharParticles charId={char.id}/>
+      <div style={{position:"relative",zIndex:2,display:"contents"}}>
       {diceModal&&<DiceModal onDismiss={()=>setDiceModal(false)} onResult={r=>setDiceResult(r)}/>}
       {/* Header */}
       <div style={{flexShrink:0,display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderBottom:`1px solid ${BORD}`,background:CARD}}>
@@ -459,36 +510,78 @@ function PlayerScreen({char,hp,en,stress,expanded,missionMode,onHp,onEn,onStress
       <div style={{flex:1,overflowY:"auto"}}>
         {/* Sticky stats */}
         <div style={{position:"sticky",top:0,zIndex:10,background:CARD,borderBottom:`1px solid ${BORD}`,padding:"16px 16px 14px"}}>
-          {/* HP */}
+          {/* ── HP ── */}
           <div style={{marginBottom:14}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:7}}>
-              <span style={{fontSize:10,letterSpacing:2.5,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif"}}>HP</span>
-              <span style={{fontSize:18,fontWeight:900,color:hpColor,fontVariantNumeric:"tabular-nums"}}>{hp} / {char.hp}</span>
-            </div>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <AdjBtn onClick={()=>onHp(-1)}>−</AdjBtn><Bar v={hp} max={char.hp} col={hpColor} h={11}/><AdjBtn onClick={()=>onHp(+1)}>+</AdjBtn>
+              <AdjBtn onClick={()=>onHp(-1)} size={40}>−</AdjBtn>
+              <div style={{flex:1}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:5}}>
+                  <span style={{fontSize:10,letterSpacing:2,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:5}}>
+                    <span style={{color:hpColor,fontSize:13}}>♥</span> HP
+                  </span>
+                  <span style={{fontSize:17,fontWeight:900,color:hpColor,fontVariantNumeric:"tabular-nums"}}>{hp}<span style={{fontSize:11,color:MUT,fontWeight:400}}>/{char.hp}</span></span>
+                </div>
+                <div style={{height:11,background:BORD,borderRadius:6,overflow:"hidden",position:"relative"}}>
+                  <div style={{width:`${char.hp>0?(hp/char.hp)*100:0}%`,height:"100%",background:`linear-gradient(90deg,${hpColor}77,${hpColor})`,borderRadius:6,transition:"width 0.2s ease",position:"relative"}}>
+                    <div style={{position:"absolute",right:0,top:0,bottom:0,width:3,background:hpColor,boxShadow:`0 0 10px ${hpColor},0 0 4px ${hpColor}`}}/>
+                  </div>
+                </div>
+              </div>
+              <AdjBtn onClick={()=>onHp(+1)} size={40}>+</AdjBtn>
             </div>
           </div>
-          {/* EN + Stress */}
-          <div style={{display:"flex",gap:16}}>
-            <div style={{flex:1}}>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:7}}>
-                <span style={{fontSize:10,letterSpacing:2,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif"}}>ENERGY</span>
-                <span style={{fontSize:13,fontWeight:700,color:EN_C}}>{en}/{char.en}</span>
+          {/* ── EN + STRESS side by side ── */}
+          <div style={{display:"flex",gap:10}}>
+            {/* Energy card */}
+            <div style={{flex:1,background:"rgba(74,143,214,0.07)",border:`1px solid rgba(74,143,214,0.18)`,borderRadius:10,padding:"10px 12px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                <span style={{fontSize:9.5,letterSpacing:2,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:4}}>
+                  <span style={{color:EN_C}}>⚡</span> EN
+                </span>
+                <span style={{fontSize:12,fontWeight:700,color:EN_C}}>{en}/{char.en}</span>
               </div>
-              <div style={{display:"flex",alignItems:"center",gap:7}}>
-                <AdjBtn onClick={()=>onEn(-1)} size={36}>−</AdjBtn><Pips n={char.en} filled={en} col={EN_C}/><AdjBtn onClick={()=>onEn(+1)} size={36}>+</AdjBtn>
+              <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:8}}>
+                {Array.from({length:char.en}).map((_,i)=>(
+                  <div key={i} style={{
+                    width:14,height:14,borderRadius:2,transform:"rotate(45deg)",flexShrink:0,
+                    background:i<en?EN_C:"transparent",
+                    border:`1.5px solid ${i<en?EN_C:BORD}`,
+                    boxShadow:i<en?`0 0 7px ${EN_C}99`:"none",
+                    transition:"all 0.15s"
+                  }}/>
+                ))}
+              </div>
+              <div style={{display:"flex",gap:6,justifyContent:"center"}}>
+                <AdjBtn onClick={()=>onEn(-1)} size={36} col={EN_C}>−</AdjBtn>
+                <AdjBtn onClick={()=>onEn(+1)} size={36} col={EN_C}>+</AdjBtn>
               </div>
             </div>
-            <div style={{flex:1}}>
-              <div style={{display:"flex",justifyContent:"space-between",marginBottom:7}}>
-                <span style={{fontSize:10,letterSpacing:2,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif"}}>STRESS</span>
-                <span style={{fontSize:13,fontWeight:700,color:stress>=4?"#ff4040":ST_C}}>{stress}/5</span>
+            {/* Stress card */}
+            {(()=>{const sc=stress>=4?"#ff4040":ST_C; return(
+            <div style={{flex:1,background:`rgba(200,64,64,${0.04+stress*0.018})`,border:`1px solid rgba(200,64,64,${0.12+stress*0.06})`,borderRadius:10,padding:"10px 12px",transition:"all 0.3s"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                <span style={{fontSize:9.5,letterSpacing:2,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:4}}>
+                  <span style={{color:sc}}>⚠</span> STRESS
+                </span>
+                <span style={{fontSize:12,fontWeight:700,color:sc}}>{stress}/5</span>
               </div>
-              <div style={{display:"flex",alignItems:"center",gap:7}}>
-                <AdjBtn onClick={()=>onStress(-1)} size={36}>−</AdjBtn><Pips n={5} filled={stress} col={stress>=4?"#ff4040":ST_C}/><AdjBtn onClick={()=>onStress(+1)} size={36}>+</AdjBtn>
+              <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:8}}>
+                {Array.from({length:5}).map((_,i)=>(
+                  <div key={i} style={{
+                    width:14,height:14,borderRadius:2,transform:"rotate(45deg)",flexShrink:0,
+                    background:i<stress?sc:"transparent",
+                    border:`1.5px solid ${i<stress?sc:BORD}`,
+                    boxShadow:i<stress?`0 0 7px ${sc}99`:"none",
+                    transition:"all 0.15s"
+                  }}/>
+                ))}
+              </div>
+              <div style={{display:"flex",gap:6,justifyContent:"center"}}>
+                <AdjBtn onClick={()=>onStress(-1)} size={36} col={sc}>−</AdjBtn>
+                <AdjBtn onClick={()=>onStress(+1)} size={36} col={sc}>+</AdjBtn>
               </div>
             </div>
+            );})()}
           </div>
           {/* Dice */}
           <div style={{display:"flex",alignItems:"center",gap:12,marginTop:14}}>
@@ -522,6 +615,7 @@ function PlayerScreen({char,hp,en,stress,expanded,missionMode,onHp,onEn,onStress
           {sorted.map((ab,i)=><AbilityCard key={i} ab={ab} idx={i} expanded={expanded} onToggle={onExpand}/>)}
           <div style={{fontSize:10,color:MUT,textAlign:"center",padding:"8px 0 24px",letterSpacing:1}}>Final Hollow type: {char.fh}</div>
         </div>
+      </div>
       </div>
     </div>
   );
@@ -618,6 +712,39 @@ function App(){
   const [newType,setNewType]=useState("grunt");
   const [newName,setNewName]=useState("");
   const [eid,setEid]=useState(1);
+  const [playerEntering,setPlayerEntering]=useState(false);
+
+  // ── Restore session from localStorage ──────────────────────────────────────
+  useEffect(()=>{
+    try{
+      const s=JSON.parse(localStorage.getItem("tll-v1")||"null");
+      if(!s||s.version!==1)return;
+      if(s.charId&&CH[s.charId]){
+        setCharId(s.charId);
+        setHp(typeof s.hp==="number"?s.hp:CH[s.charId].hp);
+        setEn(typeof s.en==="number"?s.en:CH[s.charId].en);
+        setStress(typeof s.stress==="number"?s.stress:0);
+        setMissionMode(s.missionMode||null);
+        if(s.screen==="player")setScreen("player");
+      }
+      if(s.screen==="leader"){
+        if(Array.isArray(s.enemies))setEnemies(s.enemies);
+        if(typeof s.eid==="number")setEid(s.eid);
+        setScreen("leader");
+      }
+    }catch(e){}
+  },[]);
+
+  // ── Persist session to localStorage ────────────────────────────────────────
+  useEffect(()=>{
+    try{
+      localStorage.setItem("tll-v1",JSON.stringify({
+        version:1,
+        screen:["player","leader"].includes(screen)?screen:"home",
+        charId,hp,en,stress,missionMode,enemies,eid
+      }));
+    }catch(e){}
+  },[screen,charId,hp,en,stress,missionMode,enemies,eid]);
 
   const char=charId?CH[charId]:null;
 
@@ -625,7 +752,9 @@ function App(){
     const c=CH[id];
     setCharId(id);setHp(c.hp);setEn(c.en);setStress(0);
     setExpanded(null);setMissionMode(null);
+    setPlayerEntering(true);
     setScreen("player");
+    setTimeout(()=>setPlayerEntering(false),450);
   }
   function addEnemy(){
     const et=ET[newType];
@@ -650,6 +779,7 @@ function App(){
           onStress={d=>setStress(s=>Math.max(0,Math.min(5,s+d)))}
           onExpand={i=>setExpanded(prev=>prev===i?null:i)}
           onMission={setMissionMode}
+          entering={playerEntering}
           onBack={()=>setScreen("char-select")}/>
       )}
       {screen==="leader"&&(
