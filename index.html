@@ -484,17 +484,17 @@ function AbilityCard({ab,idx,expanded,onToggle}){
 
 // ── PLAYER SCREEN ────────────────────────────────────────────────────────────
 const STRESS_ANIM=["","sp1","sp2","sp3","sp4"];
-function PlayerScreen({char,hp,en,stress,expanded,missionMode,onHp,onEn,onStress,onExpand,onMission,onBack,entering}){
+function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,onHp,onEn,onStress,onExpand,onMission,onBack,entering}){
   const [diceModal,setDiceModal]=useState(false);
   const [diceResult,setDiceResult]=useState(null);
   const pct=char.hp>0?hp/char.hp:0;
   const hpColor=hpC(pct);
   const stressClass=stress>0?STRESS_ANIM[Math.min(stress,4)]:"";
+  const sc=stress>=4?"#ff4040":ST_C;
   const sorted=[...char.ab].sort((a,b)=>AB_ORDER.indexOf(a.t)-AB_ORDER.indexOf(b.t));
   return(
     <div className={`${stressClass}${entering?" slide-in":""}`} style={{height:"100vh",display:"flex",flexDirection:"column",background:BG,position:"relative",boxShadow:`inset 4px 0 32px ${char.col}18, inset -4px 0 32px ${char.col}18`}}>
-      <CharParticles charId={char.id}/>
-      <div style={{position:"relative",zIndex:2,display:"contents"}}>
+      <CharParticles charId={charId}/>
       {diceModal&&<DiceModal onDismiss={()=>setDiceModal(false)} onResult={r=>setDiceResult(r)}/>}
       {/* Header */}
       <div style={{flexShrink:0,display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderBottom:`1px solid ${BORD}`,background:CARD}}>
@@ -557,7 +557,6 @@ function PlayerScreen({char,hp,en,stress,expanded,missionMode,onHp,onEn,onStress
               </div>
             </div>
             {/* Stress card */}
-            {(()=>{const sc=stress>=4?"#ff4040":ST_C; return(
             <div style={{flex:1,background:`rgba(200,64,64,${0.04+stress*0.018})`,border:`1px solid rgba(200,64,64,${0.12+stress*0.06})`,borderRadius:10,padding:"10px 12px",transition:"all 0.3s"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                 <span style={{fontSize:9.5,letterSpacing:2,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:4}}>
@@ -581,7 +580,6 @@ function PlayerScreen({char,hp,en,stress,expanded,missionMode,onHp,onEn,onStress
                 <AdjBtn onClick={()=>onStress(+1)} size={36} col={sc}>+</AdjBtn>
               </div>
             </div>
-            );})()}
           </div>
           {/* Dice */}
           <div style={{display:"flex",alignItems:"center",gap:12,marginTop:14}}>
@@ -615,7 +613,6 @@ function PlayerScreen({char,hp,en,stress,expanded,missionMode,onHp,onEn,onStress
           {sorted.map((ab,i)=><AbilityCard key={i} ab={ab} idx={i} expanded={expanded} onToggle={onExpand}/>)}
           <div style={{fontSize:10,color:MUT,textAlign:"center",padding:"8px 0 24px",letterSpacing:1}}>Final Hollow type: {char.fh}</div>
         </div>
-      </div>
       </div>
     </div>
   );
@@ -773,7 +770,7 @@ function App(){
       {screen==="home"&&<HomeScreen onPlayer={()=>setScreen("char-select")} onLeader={()=>{setEnemies([]);setShowAdd(false);setScreen("leader");}}/>}
       {screen==="char-select"&&<CharSelectScreen onBack={()=>setScreen("home")} onSelect={pickChar}/>}
       {screen==="player"&&char&&(
-        <PlayerScreen char={char} hp={hp} en={en} stress={stress} expanded={expanded} missionMode={missionMode}
+        <PlayerScreen char={char} charId={charId} hp={hp} en={en} stress={stress} expanded={expanded} missionMode={missionMode}
           onHp={d=>setHp(h=>Math.max(0,Math.min(char.hp,h+d)))}
           onEn={d=>setEn(e=>Math.max(0,Math.min(char.en,e+d)))}
           onStress={d=>setStress(s=>Math.max(0,Math.min(5,s+d)))}
