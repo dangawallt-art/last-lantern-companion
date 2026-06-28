@@ -352,11 +352,12 @@ const ETOK=[
   {id:"exposed",   l:"EXPOSED",   col:"#e05a2b"},
   {id:"stealthed", l:"STEALTH",   col:"#4a8fd6"},
 ];
-function StatusChip({label,active,col,onToggle}){
+function StatusChip({label,active,col,onToggle,block=false}){
   return(
     <button onClick={onToggle} style={TS({
-      padding:"5px 10px",borderRadius:20,fontSize:9,fontWeight:700,letterSpacing:1.2,
+      padding:"6px 8px",borderRadius:16,fontSize:9,fontWeight:700,letterSpacing:1.2,
       transition:"all 0.15s",flexShrink:0,
+      width:block?"100%":"auto",textAlign:block?"center":"left",
       background:active?`${col}22`:"transparent",
       border:`1px solid ${active?col:BORD}`,
       color:active?col:MUT,
@@ -544,7 +545,7 @@ function AbilityCard({ab,idx,expanded,onToggle}){
 
 // ── PLAYER SCREEN ────────────────────────────────────────────────────────────
 const STRESS_ANIM=["","sp1","sp2","sp3","sp4"];
-function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,statusTokens,onToggleStatus,gambitsUsed,onGambit,charTokens,onCharTokens,onHp,onEn,onStress,onExpand,onMission,onBack,entering}){
+function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,statusTokens,onToggleStatus,gambitsUsed,onGambit,charTokens,onCharTokens,defBonus,onDef,onHp,onEn,onStress,onExpand,onMission,onBack,entering}){
   const [diceModal,setDiceModal]=useState(false);
   const [diceResult,setDiceResult]=useState(null);
   const pct=char.hp>0?hp/char.hp:0;
@@ -643,29 +644,29 @@ function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,statusToken
               </div>
             </div>
           </div>
-          {/* Dice + Gambit */}
-          <div style={{display:"flex",alignItems:"center",gap:10,marginTop:14}}>
-            <button onClick={()=>setDiceModal(true)} style={TS({background:SURF,border:`1px solid ${BORD}`,borderRadius:8,padding:"8px 14px",color:TXT,fontSize:11,fontWeight:700,letterSpacing:1.5,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:7,flexShrink:0})}>
-              <span style={{fontSize:17}}>⚄</span> ROLL d6
+          {/* ── DEF  ·  Roll d6  ·  Gambit ── */}
+          <div style={{display:"flex",alignItems:"center",gap:6,marginTop:12,paddingTop:10,borderTop:`1px solid ${BORD}`}}>
+            <span style={{fontSize:9,letterSpacing:1,color:"#8ab4d4",fontWeight:700,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:3,flexShrink:0}}>🛡 DEF</span>
+            <AdjBtn onClick={()=>onDef(defBonus-1)} size={32} col="#8ab4d4">−</AdjBtn>
+            <span style={{fontSize:16,fontWeight:900,minWidth:28,textAlign:"center",fontVariantNumeric:"tabular-nums",color:defBonus>0?"#8ab4d4":defBonus<0?"#d44040":MUT}}>{defBonus>0?"+":""}{defBonus}</span>
+            <AdjBtn onClick={()=>onDef(defBonus+1)} size={32} col="#8ab4d4">+</AdjBtn>
+            {defBonus!==0&&(<button onClick={()=>onDef(0)} style={TS({fontSize:9,color:MUT,padding:"2px 7px",border:`1px solid ${BORD}`,borderRadius:5,background:"none"})}>RST</button>)}
+            <div style={{flex:1}}/>
+            <button onClick={()=>setDiceModal(true)} style={TS({background:SURF,border:`1px solid ${BORD}`,borderRadius:8,padding:"7px 10px",color:TXT,fontSize:10,fontWeight:700,letterSpacing:1,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:5,flexShrink:0})}>
+              <span style={{fontSize:15}}>⚄</span> d6
             </button>
-            {diceResult&&<span style={{fontSize:22,fontWeight:900,color:diceResult<=2?"#d44040":diceResult>=5?"#2db86a":"#c8a951",fontFamily:"'Cinzel Decorative',serif",minWidth:24}}>{diceResult}</span>}
-            <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:7,flexShrink:0}}>
-              <span style={{fontSize:9,letterSpacing:1.5,color:MUT,fontFamily:"'Cinzel',serif"}}>GAMBIT</span>
+            {diceResult&&(<span style={{fontSize:18,fontWeight:900,color:diceResult<=2?"#d44040":diceResult>=5?"#2db86a":"#c8a951",fontFamily:"'Cinzel Decorative',serif",minWidth:20,textAlign:"center"}}>{diceResult}</span>)}
+            <div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
+              <span style={{fontSize:9,letterSpacing:0.5,color:MUT,fontFamily:"'Cinzel',serif"}}>GAM</span>
               {[0,1].map(i=>(
-                <button key={i} onClick={()=>onGambit(gambitsUsed===i+1?i:i+1)} style={TS({
-                  width:20,height:20,borderRadius:"50%",
-                  background:i<gambitsUsed?"#c84040":"transparent",
-                  border:`2px solid ${i<gambitsUsed?"#c84040":BORD}`,
-                  boxShadow:i<gambitsUsed?"0 0 8px #c8404088":"none",
-                  transition:"all 0.15s",
-                })}/>
+                <button key={i} onClick={()=>onGambit(gambitsUsed===i+1?i:i+1)} style={TS({width:18,height:18,borderRadius:"50%",background:i<gambitsUsed?"#c84040":"transparent",border:`2px solid ${i<gambitsUsed?"#c84040":BORD}`,boxShadow:i<gambitsUsed?"0 0 8px #c8404088":"none",transition:"all 0.15s"})}/>
               ))}
             </div>
           </div>
-          {/* Status tokens */}
-          <div style={{display:"flex",gap:5,marginTop:10,overflowX:"auto",paddingBottom:2}}>
+          {/* Status tokens — 2 × 3 grid */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:5,marginTop:10}}>
             {PTOK.map(t=>(
-              <StatusChip key={t.id} label={t.l} active={!!(statusTokens&&statusTokens[t.id])} col={t.col} onToggle={()=>onToggleStatus(t.id)}/>
+              <StatusChip key={t.id} label={t.l} active={!!(statusTokens&&statusTokens[t.id])} col={t.col} onToggle={()=>onToggleStatus(t.id)} block/>
             ))}
           </div>
           {/* Char-specific token (Spite / Grip / Calibration) */}
@@ -820,6 +821,7 @@ function App(){
   const [statusTokens,setStatusTokens]=useState({});
   const [gambitsUsed,setGambitsUsed]=useState(0);
   const [charTokens,setCharTokens]=useState(0);
+  const [defBonus,setDefBonus]=useState(0);
 
   // ── Restore session from localStorage ──────────────────────────────────────
   useEffect(()=>{
@@ -837,6 +839,7 @@ function App(){
       if(s.statusTokens)setStatusTokens(s.statusTokens);
       if(typeof s.gambitsUsed==='number')setGambitsUsed(s.gambitsUsed);
       if(typeof s.charTokens==='number')setCharTokens(s.charTokens);
+      if(typeof s.defBonus==='number')setDefBonus(s.defBonus);
       if(s.screen==="leader"){
         if(Array.isArray(s.enemies))setEnemies(s.enemies);
         if(typeof s.eid==="number")setEid(s.eid);
@@ -852,7 +855,7 @@ function App(){
         version:1,
         screen:["player","leader"].includes(screen)?screen:"home",
         charId,hp,en,stress,missionMode,enemies,eid,
-        statusTokens,gambitsUsed,charTokens
+        statusTokens,gambitsUsed,charTokens,defBonus
       }));
     }catch(e){}
   },[screen,charId,hp,en,stress,missionMode,enemies,eid]);
@@ -866,6 +869,7 @@ function App(){
     setStatusTokens({});
     setGambitsUsed(0);
     setCharTokens(0);
+    setDefBonus(0);
     setPlayerEntering(true);
     setScreen("player");
     setTimeout(()=>setPlayerEntering(false),450);
@@ -904,6 +908,8 @@ function App(){
           onGambit={setGambitsUsed}
           charTokens={charTokens}
           onCharTokens={setCharTokens}
+          defBonus={defBonus}
+          onDef={setDefBonus}
           entering={playerEntering}
           onBack={()=>setScreen("char-select")}/>
       )}
