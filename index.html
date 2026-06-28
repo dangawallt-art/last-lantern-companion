@@ -59,10 +59,16 @@
 
     .fade-in {animation:fadeIn  0.35s ease-out both;}
     .slide-in{animation:slideIn 0.30s ease-out both;}
-    .sp1{animation:sp1 3.0s ease-in-out infinite;}
-    .sp2{animation:sp2 2.0s ease-in-out infinite;}
-    .sp3{animation:sp3 1.5s ease-in-out infinite;}
-    .sp4{animation:sp4 0.8s ease-in-out infinite;}
+    @keyframes charPart{
+      0%  {transform:translateY(0) scale(1);opacity:0;}
+      15% {opacity:0.75;}
+      85% {opacity:0.35;}
+      100%{transform:translateY(-85px) scale(0.4);opacity:0;}
+    }
+    .sp1{animation:sp1 4.0s ease-in-out infinite;}
+    .sp2{animation:sp2 3.0s ease-in-out infinite;}
+    .sp3{animation:sp3 2.5s ease-in-out infinite;}
+    .sp4{animation:sp4 1.8s ease-in-out infinite;}
   </style>
 </head>
 <body>
@@ -111,6 +117,7 @@ const CH={
       {t:"quirk",  n:"Cannot Stay Back", c:"",                                d:"End of round: if ally within 2 tiles took damage and Matilda did NOT move toward an enemy, she gains 1 Stress."},
     ]},
   vivi:{n:"Vivi",ti:"The Wildheart",ar:"Brawler",col:"#f15025",hp:32,en:3,spd:1,fh:"Physical",
+    tokenConfig:{name:"Spite",max:3,col:"#f15025"},
     mission:[{id:"spite",l:"Spite",b:"Gain Spite tokens when hit; spend for +3/+6/+10 damage."},{id:"momentum",l:"Momentum",b:"Each tile moved this turn, next attack +1 damage (max +3)."}],
     ab:[
       {t:"basic",  n:"Basic Attack",          c:"",                                d:"5 damage. Shove: after Vivi damages a normal enemy, she may push it 1 tile."},
@@ -133,6 +140,7 @@ const CH={
       {t:"quirk",  n:"Cannot Leave It Alone",c:"",                           d:"End of round: if ally within 2 tiles took damage and Petter did NOT end adjacent to a wounded ally, gains 1 Stress."},
     ]},
   nikken:{n:"Nikken",ti:"The Dozer",ar:"Brawler × Assassin",col:"#b84c6a",hp:28,en:4,spd:1,fh:"Physical",
+    tokenConfig:{name:"Grip",max:2,col:"#b84c6a"},
     ab:[
       {t:"basic",  n:"Basic Attack",           c:"",                                d:"4 damage. Break: on hit, reduce target's DEF by 1 until end of round."},
       {t:"passive",n:"Grip",                   c:"each round start",                d:"Gain 1 Grip token (max 2). Grip persists between rounds. Spend Grip tokens on any attack this turn for +2 damage per token."},
@@ -143,6 +151,7 @@ const CH={
       {t:"quirk",  n:"Doesn't Watch Where He's Going",c:"",                        d:"Whenever Nikken moves, roll 1d6. On a 1, stops 1 tile short of destination and gains 1 Stress."},
     ]},
   michelle:{n:"Michelle",ti:"The Architect",ar:"Tinkerer × Mage",col:"#f0a500",hp:20,en:5,spd:1,fh:"Physical or Magic",
+    tokenConfig:{name:"Calibration",max:2,col:"#f0a500"},
     ab:[
       {t:"basic",  n:"Basic Attack",       c:"",                                d:"4 damage. Tagged: if target triggers one of Michelle's fields this round, that field deals +2 damage."},
       {t:"passive",n:"Calibration",        c:"each round start",                d:"Gain 1 Calibration token (max 2). Spend on Arc Needle or Snap Field for alternate effects."},
@@ -303,7 +312,7 @@ ORDER.forEach(id => {
   const rng = (n) => { const x = Math.sin(seed + n) * 10000; return x - Math.floor(x); };
   CHAR_PX[id] = Array.from({length:18}, (_,i) => ({
     id:i, x:rng(i)*100, y:rng(i+50)*100,
-    sz:rng(i+100)*2.5+0.8, dur:rng(i+200)*7+4,
+    sz:rng(i+100)*4+2.5, dur:rng(i+200)*6+5,
     delay:rng(i+300)*-12,
     op:rng(i+400)*0.25+0.08,
     dx:`${(rng(i+500)-.5)*28}px`, dy:`${-55-rng(i+600)*35}px`,
@@ -312,22 +321,52 @@ ORDER.forEach(id => {
 function CharParticles({charId}){
   const col=CH[charId].col;
   return(
-    <div style={{position:"absolute",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:0}}>
+    <div style={{position:"absolute",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:1}}>
       {CHAR_PX[charId].map(p=>(
         <div key={p.id} style={{
-          position:"absolute",left:`${p.x}%`,top:`${p.y}%`,
+          position:"absolute",
+          left:`${p.x}%`,top:`${p.y}%`,
           width:p.sz,height:p.sz,borderRadius:"50%",
-          background:col,boxShadow:`0 0 3px ${col}`,
-          "--op":p.op,"--dx":p.dx,"--dy":p.dy,
-          animation:`floatUp ${p.dur}s linear ${p.delay}s infinite`,
+          background:col,
+          boxShadow:`0 0 ${p.sz*2}px ${col}88`,
+          animation:`charPart ${p.dur}s ease-out ${p.delay}s infinite`,
         }}/>
       ))}
     </div>
   );
 }
 
+
+// ── STATUS TOKENS ────────────────────────────────────────────────────────────
+const PTOK=[
+  {id:"hidden",    l:"HIDDEN",    col:"#7b61ff"},
+  {id:"rooted",    l:"ROOTED",    col:"#8b6840"},
+  {id:"tracked",   l:"TRACKED",   col:"#c8a951"},
+  {id:"exposed",   l:"EXPOSED",   col:"#e05a2b"},
+  {id:"stealthed", l:"STEALTH",   col:"#4a8fd6"},
+  {id:"slowed",    l:"SLOWED",    col:"#06c49a"},
+];
+const ETOK=[
+  {id:"rooted",    l:"ROOTED",    col:"#8b6840"},
+  {id:"slowed",    l:"SLOWED",    col:"#06c49a"},
+  {id:"exposed",   l:"EXPOSED",   col:"#e05a2b"},
+  {id:"stealthed", l:"STEALTH",   col:"#4a8fd6"},
+];
+function StatusChip({label,active,col,onToggle}){
+  return(
+    <button onClick={onToggle} style={TS({
+      padding:"5px 10px",borderRadius:20,fontSize:9,fontWeight:700,letterSpacing:1.2,
+      transition:"all 0.15s",flexShrink:0,
+      background:active?`${col}22`:"transparent",
+      border:`1px solid ${active?col:BORD}`,
+      color:active?col:MUT,
+      boxShadow:active?`0 0 8px ${col}44`:"none",
+    })}>{label}</button>
+  );
+}
+
 // ── HOME SCREEN ──────────────────────────────────────────────────────────────
-function HomeScreen({onPlayer,onLeader}){
+function HomeScreen({onPlayer,onLeader,savedCharId,savedEnemyCount,onContPlayer,onContLeader}){
   return(
     <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 24px",gap:32,position:"relative",overflow:"hidden"}}>
       <NightParticles/>
@@ -340,6 +379,30 @@ function HomeScreen({onPlayer,onLeader}){
         </div>
         <div style={{width:60,height:2,margin:"18px auto 0",background:"linear-gradient(90deg,transparent,#c8a951,transparent)"}}/>
       </div>
+      {(savedCharId||savedEnemyCount>0)&&(
+        <div style={{display:"flex",flexDirection:"column",gap:8,width:"100%",maxWidth:340,zIndex:1,marginBottom:8}}>
+          {savedCharId&&(
+            <button onClick={onContPlayer} style={TS({background:"rgba(200,169,81,0.10)",border:"1px solid rgba(200,169,81,0.40)",borderRadius:12,padding:"14px 18px",width:"100%",display:"flex",alignItems:"center",gap:14,color:TXT})}>
+              <span style={{fontSize:22}}>↩</span>
+              <div style={{flex:1,textAlign:"left"}}>
+                <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:"#c8a951",fontFamily:"'Cinzel',serif"}}>CONTINUE</div>
+                <div style={{fontSize:10,color:MUT,marginTop:2}}>Resume as {CH[savedCharId].n} — {CH[savedCharId].ti}</div>
+              </div>
+              <span style={{color:"#c8a951",fontSize:16}}>›</span>
+            </button>
+          )}
+          {savedEnemyCount>0&&(
+            <button onClick={onContLeader} style={TS({background:"rgba(212,64,64,0.10)",border:"1px solid rgba(212,64,64,0.35)",borderRadius:12,padding:"14px 18px",width:"100%",display:"flex",alignItems:"center",gap:14,color:TXT})}>
+              <span style={{fontSize:22}}>⚔</span>
+              <div style={{flex:1,textAlign:"left"}}>
+                <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:"#d44040",fontFamily:"'Cinzel',serif"}}>CONTINUE ENCOUNTER</div>
+                <div style={{fontSize:10,color:MUT,marginTop:2}}>{savedEnemyCount} {savedEnemyCount===1?"enemy":"enemies"} active</div>
+              </div>
+              <span style={{color:"#d44040",fontSize:16}}>›</span>
+            </button>
+          )}
+        </div>
+      )}
       <div style={{display:"flex",flexDirection:"column",gap:12,width:"100%",maxWidth:340,zIndex:1}}>
         {[{icon:"⚔",label:"PLAYER",sub:"Track your survivor",fn:onPlayer},{icon:"👁",label:"DUNGEON MASTER",sub:"Manage the encounter",fn:onLeader}].map(({icon,label,sub,fn})=>(
           <button key={label} onClick={fn} style={TS({background:"rgba(17,20,32,0.85)",border:`1px solid ${BORD}`,borderRadius:12,padding:"20px",textAlign:"left",color:TXT,display:"flex",alignItems:"center",gap:16,backdropFilter:"blur(8px)"})}>
@@ -481,7 +544,7 @@ function AbilityCard({ab,idx,expanded,onToggle}){
 
 // ── PLAYER SCREEN ────────────────────────────────────────────────────────────
 const STRESS_ANIM=["","sp1","sp2","sp3","sp4"];
-function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,onHp,onEn,onStress,onExpand,onMission,onBack,entering}){
+function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,statusTokens,onToggleStatus,gambitsUsed,onGambit,charTokens,onCharTokens,onHp,onEn,onStress,onExpand,onMission,onBack,entering}){
   const [diceModal,setDiceModal]=useState(false);
   const [diceResult,setDiceResult]=useState(null);
   const pct=char.hp>0?hp/char.hp:0;
@@ -509,8 +572,9 @@ function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,onHp,onEn,o
         <div style={{position:"sticky",top:0,zIndex:10,background:CARD,borderBottom:`1px solid ${BORD}`,padding:"16px 16px 14px"}}>
           {/* ── HP ── */}
           <div style={{marginBottom:14}}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <AdjBtn onClick={()=>onHp(-1)} size={40}>−</AdjBtn>
+            <div style={{display:"flex",alignItems:"center",gap:5}}>
+              <AdjBtn onClick={()=>onHp(-5)} size={36} col={hpColor}>-5</AdjBtn>
+              <AdjBtn onClick={()=>onHp(-1)} size={36}>−</AdjBtn>
               <div style={{flex:1}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:5}}>
                   <span style={{fontSize:10,letterSpacing:2,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:5}}>
@@ -524,7 +588,8 @@ function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,onHp,onEn,o
                   </div>
                 </div>
               </div>
-              <AdjBtn onClick={()=>onHp(+1)} size={40}>+</AdjBtn>
+              <AdjBtn onClick={()=>onHp(+1)} size={36}>+</AdjBtn>
+              <AdjBtn onClick={()=>onHp(+5)} size={36} col={hpColor}>+5</AdjBtn>
             </div>
           </div>
           {/* ── EN + STRESS side by side ── */}
@@ -578,13 +643,53 @@ function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,onHp,onEn,o
               </div>
             </div>
           </div>
-          {/* Dice */}
-          <div style={{display:"flex",alignItems:"center",gap:12,marginTop:14}}>
-            <button onClick={()=>setDiceModal(true)} style={TS({background:SURF,border:`1px solid ${BORD}`,borderRadius:8,padding:"8px 16px",color:TXT,fontSize:11,fontWeight:700,letterSpacing:1.5,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:8})}>
-              <span style={{fontSize:18}}>⚄</span> ROLL d6
+          {/* Dice + Gambit */}
+          <div style={{display:"flex",alignItems:"center",gap:10,marginTop:14}}>
+            <button onClick={()=>setDiceModal(true)} style={TS({background:SURF,border:`1px solid ${BORD}`,borderRadius:8,padding:"8px 14px",color:TXT,fontSize:11,fontWeight:700,letterSpacing:1.5,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:7,flexShrink:0})}>
+              <span style={{fontSize:17}}>⚄</span> ROLL d6
             </button>
-            {diceResult&&<span style={{fontSize:26,fontWeight:900,color:diceResult<=2?"#d44040":diceResult>=5?"#2db86a":"#c8a951",fontFamily:"'Cinzel Decorative',serif"}}>{diceResult}</span>}
+            {diceResult&&<span style={{fontSize:22,fontWeight:900,color:diceResult<=2?"#d44040":diceResult>=5?"#2db86a":"#c8a951",fontFamily:"'Cinzel Decorative',serif",minWidth:24}}>{diceResult}</span>}
+            <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:7,flexShrink:0}}>
+              <span style={{fontSize:9,letterSpacing:1.5,color:MUT,fontFamily:"'Cinzel',serif"}}>GAMBIT</span>
+              {[0,1].map(i=>(
+                <button key={i} onClick={()=>onGambit(gambitsUsed===i+1?i:i+1)} style={TS({
+                  width:20,height:20,borderRadius:"50%",
+                  background:i<gambitsUsed?"#c84040":"transparent",
+                  border:`2px solid ${i<gambitsUsed?"#c84040":BORD}`,
+                  boxShadow:i<gambitsUsed?"0 0 8px #c8404088":"none",
+                  transition:"all 0.15s",
+                })}/>
+              ))}
+            </div>
           </div>
+          {/* Status tokens */}
+          <div style={{display:"flex",gap:5,marginTop:10,overflowX:"auto",paddingBottom:2}}>
+            {PTOK.map(t=>(
+              <StatusChip key={t.id} label={t.l} active={!!(statusTokens&&statusTokens[t.id])} col={t.col} onToggle={()=>onToggleStatus(t.id)}/>
+            ))}
+          </div>
+          {/* Char-specific token (Spite / Grip / Calibration) */}
+          {char.tokenConfig&&(
+            <div style={{display:"flex",alignItems:"center",gap:8,marginTop:10,paddingTop:10,borderTop:`1px solid ${BORD}`}}>
+              <span style={{fontSize:9,letterSpacing:1.5,color:MUT,fontFamily:"'Cinzel',serif",flexShrink:0}}>{char.tokenConfig.name.toUpperCase()}</span>
+              <div style={{display:"flex",gap:5,flex:1}}>
+                {Array.from({length:char.tokenConfig.max}).map((_,i)=>(
+                  <button key={i} onClick={()=>onCharTokens(charTokens===i+1?i:i+1)} style={TS({
+                    width:18,height:18,borderRadius:3,transform:"rotate(45deg)",flexShrink:0,
+                    background:i<charTokens?char.tokenConfig.col:"transparent",
+                    border:`1.5px solid ${i<charTokens?char.tokenConfig.col:BORD}`,
+                    boxShadow:i<charTokens?`0 0 8px ${char.tokenConfig.col}88`:"none",
+                    transition:"all 0.15s",
+                  })}/>
+                ))}
+              </div>
+              <span style={{fontSize:12,fontWeight:700,color:char.tokenConfig.col,flexShrink:0}}>{charTokens}/{char.tokenConfig.max}</span>
+              <div style={{display:"flex",gap:4}}>
+                <AdjBtn onClick={()=>onCharTokens(Math.max(0,charTokens-1))} size={28}>−</AdjBtn>
+                <AdjBtn onClick={()=>onCharTokens(Math.min(char.tokenConfig.max,charTokens+1))} size={28}>+</AdjBtn>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Mission mode selector (for chars with choices) */}
@@ -616,7 +721,7 @@ function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,onHp,onEn,o
 }
 
 // ── ENEMY CARD ───────────────────────────────────────────────────────────────
-function EnemyCard({enemy,onAdjust,onRemove}){
+function EnemyCard({enemy,onAdjust,onRemove,onToggleStatus}){
   const et=ET[enemy.type];
   const hpColor=hpC(enemy.maxHp>0?enemy.hp/enemy.maxHp:0);
   return(
@@ -632,7 +737,12 @@ function EnemyCard({enemy,onAdjust,onRemove}){
         <span style={{fontSize:16,fontWeight:900,color:hpColor,fontVariantNumeric:"tabular-nums"}}>{enemy.hp} / {enemy.maxHp}</span>
       </div>
       <Bar v={enemy.hp} max={enemy.maxHp} col={hpColor} h={10}/>
-      <div style={{display:"flex",gap:6,marginTop:12}}>
+      <div style={{display:"flex",gap:5,flexWrap:"wrap",marginTop:8}}>
+        {ETOK.map(t=>(
+          <StatusChip key={t.id} label={t.l} active={!!(enemy.status&&enemy.status[t.id])} col={t.col} onToggle={()=>onToggleStatus&&onToggleStatus(enemy.id,t.id)}/>
+        ))}
+      </div>
+      <div style={{display:"flex",gap:6,marginTop:10}}>
         {[-10,-5,-1].map(d=><AdjBtn key={d} onClick={()=>onAdjust(enemy.id,d)} size={46} col={ST_C}>{d}</AdjBtn>)}
         {[+1,+5,+10].map(d=><AdjBtn key={d} onClick={()=>onAdjust(enemy.id,d)} size={46} col="#2db86a">+{d}</AdjBtn>)}
       </div>
@@ -641,7 +751,7 @@ function EnemyCard({enemy,onAdjust,onRemove}){
 }
 
 // ── LEADER SCREEN ────────────────────────────────────────────────────────────
-function LeaderScreen({enemies,showAdd,newType,newName,nextId,onShowAdd,onHideAdd,onSetType,onSetName,onAdd,onRemove,onAdjust,onBack}){
+function LeaderScreen({enemies,showAdd,newType,newName,nextId,onShowAdd,onHideAdd,onSetType,onSetName,onAdd,onRemove,onAdjust,onToggleStatus,onBack}){
   return(
     <div style={{height:"100vh",display:"flex",flexDirection:"column"}}>
       <div style={{flexShrink:0,display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderBottom:`1px solid ${BORD}`,background:CARD}}>
@@ -661,7 +771,7 @@ function LeaderScreen({enemies,showAdd,newType,newName,nextId,onShowAdd,onHideAd
         </div>
       ):(
         <div style={{flex:1,overflowY:"auto",padding:14}}>
-          {enemies.map(e=><EnemyCard key={e.id} enemy={e} onAdjust={onAdjust} onRemove={onRemove}/>)}
+          {enemies.map(e=><EnemyCard key={e.id} enemy={e} onAdjust={onAdjust} onRemove={onRemove} onToggleStatus={onToggleStatus}/>)}
         </div>
       )}
       {showAdd&&(
@@ -707,6 +817,9 @@ function App(){
   const [newName,setNewName]=useState("");
   const [eid,setEid]=useState(1);
   const [playerEntering,setPlayerEntering]=useState(false);
+  const [statusTokens,setStatusTokens]=useState({});
+  const [gambitsUsed,setGambitsUsed]=useState(0);
+  const [charTokens,setCharTokens]=useState(0);
 
   // ── Restore session from localStorage ──────────────────────────────────────
   useEffect(()=>{
@@ -721,6 +834,9 @@ function App(){
         setMissionMode(s.missionMode||null);
         if(s.screen==="player")setScreen("player");
       }
+      if(s.statusTokens)setStatusTokens(s.statusTokens);
+      if(typeof s.gambitsUsed==='number')setGambitsUsed(s.gambitsUsed);
+      if(typeof s.charTokens==='number')setCharTokens(s.charTokens);
       if(s.screen==="leader"){
         if(Array.isArray(s.enemies))setEnemies(s.enemies);
         if(typeof s.eid==="number")setEid(s.eid);
@@ -735,7 +851,8 @@ function App(){
       localStorage.setItem("tll-v1",JSON.stringify({
         version:1,
         screen:["player","leader"].includes(screen)?screen:"home",
-        charId,hp,en,stress,missionMode,enemies,eid
+        charId,hp,en,stress,missionMode,enemies,eid,
+        statusTokens,gambitsUsed,charTokens
       }));
     }catch(e){}
   },[screen,charId,hp,en,stress,missionMode,enemies,eid]);
@@ -746,6 +863,9 @@ function App(){
     const c=CH[id];
     setCharId(id);setHp(c.hp);setEn(c.en);setStress(0);
     setExpanded(null);setMissionMode(null);
+    setStatusTokens({});
+    setGambitsUsed(0);
+    setCharTokens(0);
     setPlayerEntering(true);
     setScreen("player");
     setTimeout(()=>setPlayerEntering(false),450);
@@ -753,8 +873,13 @@ function App(){
   function addEnemy(){
     const et=ET[newType];
     const name=newName.trim()||`${et.l} ${eid}`;
-    setEnemies(prev=>[...prev,{id:eid,name,type:newType,hp:et.defHp,maxHp:et.defHp}]);
+    setEnemies(prev=>[...prev,{id:eid,name,type:newType,hp:et.defHp,maxHp:et.defHp,status:{}}]);
     setEid(i=>i+1);setNewName("");setShowAdd(false);
+  }
+  function toggleEnemyStatus(id,token){
+    setEnemies(prev=>prev.map(e=>
+      e.id===id?{...e,status:{...(e.status||{}),[token]:!((e.status||{})[token])}}:e
+    ));
   }
   function adjustEHP(id,d){
     setEnemies(prev=>prev.map(e=>e.id===id?{...e,hp:Math.max(0,Math.min(e.maxHp,e.hp+d))}:e));
@@ -764,7 +889,7 @@ function App(){
 
   return(
     <div style={root} className="fade-in">
-      {screen==="home"&&<HomeScreen onPlayer={()=>setScreen("char-select")} onLeader={()=>{setEnemies([]);setShowAdd(false);setScreen("leader");}}/>}
+      {screen==="home"&&<HomeScreen onPlayer={()=>setScreen("char-select")} onLeader={()=>{setEnemies([]);setShowAdd(false);setScreen("leader");}} savedCharId={charId} savedEnemyCount={enemies.length} onContPlayer={()=>setScreen("player")} onContLeader={()=>setScreen("leader")}/>}
       {screen==="char-select"&&<CharSelectScreen onBack={()=>setScreen("home")} onSelect={pickChar}/>}
       {screen==="player"&&char&&(
         <PlayerScreen char={char} charId={charId} hp={hp} en={en} stress={stress} expanded={expanded} missionMode={missionMode}
@@ -773,6 +898,12 @@ function App(){
           onStress={d=>setStress(s=>Math.max(0,Math.min(5,s+d)))}
           onExpand={i=>setExpanded(prev=>prev===i?null:i)}
           onMission={setMissionMode}
+          statusTokens={statusTokens}
+          onToggleStatus={t=>setStatusTokens(prev=>({...prev,[t]:!prev[t]}))}
+          gambitsUsed={gambitsUsed}
+          onGambit={setGambitsUsed}
+          charTokens={charTokens}
+          onCharTokens={setCharTokens}
           entering={playerEntering}
           onBack={()=>setScreen("char-select")}/>
       )}
@@ -781,7 +912,9 @@ function App(){
           onShowAdd={()=>setShowAdd(true)} onHideAdd={()=>setShowAdd(false)}
           onSetType={setNewType} onSetName={setNewName} onAdd={addEnemy}
           onRemove={id=>setEnemies(prev=>prev.filter(e=>e.id!==id))}
-          onAdjust={adjustEHP} onBack={()=>setScreen("home")}/>
+          onAdjust={adjustEHP}
+          onToggleStatus={toggleEnemyStatus}
+          onBack={()=>setScreen("home")}/>
       )}
     </div>
   );
