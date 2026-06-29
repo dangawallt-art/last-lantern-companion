@@ -4,82 +4,54 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
   <title>The Last Lantern</title>
-
-  <!-- PWA / mobile install -->
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
   <meta name="apple-mobile-web-app-title" content="Last Lantern"/>
-  <meta name="theme-color" content="#090b12"/>
+  <meta name="theme-color" content="#090b12" id="tll-theme-color"/>
   <link rel="manifest" href="manifest.json"/>
   <link rel="apple-touch-icon" href="icon-192.png"/>
   <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
   <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
-
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700;900&display=swap" rel="stylesheet"/>
-
-  <!-- React 18 + Babel standalone (no build step needed) -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
   <style>
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-    html,body{height:100%;background:#090b12;overflow-x:hidden;}
+    html,body{height:100%;overflow-x:hidden;}
     #root{min-height:100%;}
-
-    @keyframes floatUp{
-      0%  {transform:translate(0,0) scale(1);opacity:0;}
-      12% {opacity:var(--op,0.7);}
-      88% {opacity:calc(var(--op,0.7)*0.3);}
-      100%{transform:translate(var(--dx,0px),var(--dy,-90px)) scale(0.5);opacity:0;}
-    }
-    @keyframes emberRise{
-      0%  {transform:translate(0,0) scale(1);opacity:0;}
-      15% {opacity:0.95;}
-      80% {opacity:0.4;}
-      100%{transform:translate(var(--ex,8px),-110px) scale(0.3);opacity:0;}
-    }
-    @keyframes flameDance{
-      0%,100%{transform:scaleX(1)   scaleY(1)   translateY(0);}
-      25%    {transform:scaleX(1.2) scaleY(0.9) translateY(2px);}
-      50%    {transform:scaleX(0.85)scaleY(1.1) translateY(-3px);}
-      75%    {transform:scaleX(1.1) scaleY(0.95)translateY(1px);}
-    }
-    @keyframes sp1{0%,100%{box-shadow:inset 0 0 35px rgba(210,40,40,.10);}50%{box-shadow:inset 0 0 70px  rgba(210,40,40,.20);}}
+    @keyframes floatUp{0%{transform:translate(0,0) scale(1);opacity:0;}12%{opacity:var(--op,0.7);}88%{opacity:calc(var(--op,0.7)*0.3);}100%{transform:translate(var(--dx,0px),var(--dy,-90px)) scale(0.5);opacity:0;}}
+    @keyframes emberRise{0%{transform:translate(0,0) scale(1);opacity:0;}15%{opacity:0.95;}80%{opacity:0.4;}100%{transform:translate(var(--ex,8px),-110px) scale(0.3);opacity:0;}}
+    @keyframes sp1{0%,100%{box-shadow:inset 0 0 35px rgba(210,40,40,.10);}50%{box-shadow:inset 0 0 70px rgba(210,40,40,.20);}}
     @keyframes sp2{0%,100%{box-shadow:inset 0 0 50px rgba(220,40,40,.18);}50%{box-shadow:inset 0 0 100px rgba(220,40,40,.36);}}
     @keyframes sp3{0%,100%{box-shadow:inset 0 0 60px rgba(230,40,40,.28);}50%{box-shadow:inset 0 0 120px rgba(230,40,40,.52);}}
-    @keyframes sp4{
-      0%,100%{box-shadow:inset 0 0 70px rgba(255,30,30,.40),inset 0 0 20px rgba(255,80,80,.20);}
-      50%    {box-shadow:inset 0 0 140px rgba(255,30,30,.65),inset 0 0 40px rgba(255,80,80,.30);}
-    }
-    @keyframes fadeIn {from{opacity:0;transform:scale(0.96);}to{opacity:1;transform:scale(1);}}
+    @keyframes sp4{0%,100%{box-shadow:inset 0 0 70px rgba(255,30,30,.40),inset 0 0 20px rgba(255,80,80,.20);}50%{box-shadow:inset 0 0 140px rgba(255,30,30,.65),inset 0 0 40px rgba(255,80,80,.30);}}
+    @keyframes fadeIn{from{opacity:0;transform:scale(0.96);}to{opacity:1;transform:scale(1);}}
     @keyframes slideIn{from{opacity:0;transform:translateX(50px);}to{opacity:1;transform:translateX(0);}}
-
-    .fade-in {animation:fadeIn  0.35s ease-out both;}
+    @keyframes charPart{0%{transform:translateY(0) scale(1);opacity:0;}15%{opacity:0.75;}85%{opacity:0.35;}100%{transform:translateY(-85px) scale(0.4);opacity:0;}}
+    @keyframes lanternSway{0%,100%{transform:rotate(-1.5deg);}50%{transform:rotate(1.5deg);}}
+    @keyframes hpFlow{from{background-position:-80px 0;}to{background-position:200px 0;}}
+    @keyframes enPulse{0%,100%{box-shadow:0 0 7px #4a8fd699;}50%{box-shadow:0 0 18px #4a8fd6ee,0 0 7px #4a8fd6;}}
+    @keyframes stressPulse{0%,100%{box-shadow:0 0 7px rgba(200,64,64,.6);}50%{box-shadow:0 0 18px rgba(200,64,64,.98),0 0 7px rgba(200,64,64,.8);}}
+    .fade-in{animation:fadeIn 0.35s ease-out both;}
     .slide-in{animation:slideIn 0.30s ease-out both;}
-    @keyframes charPart{
-      0%  {transform:translateY(0) scale(1);opacity:0;}
-      15% {opacity:0.75;}
-      85% {opacity:0.35;}
-      100%{transform:translateY(-85px) scale(0.4);opacity:0;}
-    }
     .sp1{animation:sp1 4.0s ease-in-out infinite;}
     .sp2{animation:sp2 3.0s ease-in-out infinite;}
     .sp3{animation:sp3 2.5s ease-in-out infinite;}
     .sp4{animation:sp4 1.8s ease-in-out infinite;}
+    .hp-shimmer{position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.22),transparent);background-size:80px 100%;animation:hpFlow 2.8s linear infinite;pointer-events:none;}
   </style>
 </head>
 <body>
   <div id="root"></div>
-
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-
 // ── TOKENS ──────────────────────────────────────────────────────────────────
-const BG="#090b12",CARD="#111420",SURF="#181d2c",BORD="#242a3a",TXT="#dcd8cc",MUT="#626574";
+const DARK ={BG:"#090b12",CARD:"#111420",SURF:"#181d2c",BORD:"#242a3a",TXT:"#dcd8cc",MUT:"#626574"};
+const LIGHT={BG:"#f4ead8",CARD:"#ede0c0",SURF:"#e4d4a8",BORD:"#c8aa60",TXT:"#2a1c08",MUT:"#7a6030"};
+const ThemeCtx=React.createContext({...DARK,reduceMotion:false});
 const EN_C="#4a8fd6",ST_C="#c84040";
 const hpC=p=>p>.6?"#2db86a":p>.3?"#d99018":"#d43030";
 const AT={
@@ -202,72 +174,191 @@ const ET={
 
 // ── PRIMITIVES ───────────────────────────────────────────────────────────────
 const TS=(x={})=>({cursor:"pointer",border:"none",outline:"none",fontFamily:"inherit",touchAction:"manipulation",WebkitTapHighlightColor:"transparent",...x});
-function AdjBtn({onClick,children,size=44,col=TXT}){
-  return <button onClick={onClick} style={TS({width:size,height:size,borderRadius:8,background:SURF,border:`1px solid ${BORD}`,color:col,fontSize:size>36?20:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0})}>{children}</button>;
-}
-function Bar({v,max,col,h=8}){
-  const p=max>0?Math.max(0,Math.min(1,v/max)):0;
-  return <div style={{flex:1,height:h,background:BORD,borderRadius:4,overflow:"hidden"}}><div style={{width:`${p*100}%`,height:"100%",background:`linear-gradient(90deg,${col}88,${col})`,borderRadius:4,transition:"width 0.15s ease"}}/></div>;
-}
-function Pips({n,filled,col,size=15}){
-  return <div style={{display:"flex",gap:3}}>{Array.from({length:n}).map((_,i)=><div key={i} style={{width:size,height:size,borderRadius:3,background:i<filled?col:"transparent",border:`1.5px solid ${i<filled?col:BORD}`,transition:"background 0.1s"}}/>)}</div>;
+
+function AdjBtn({onClick,children,size=44,col}){
+  const T=React.useContext(ThemeCtx);
+  const c=col||T.TXT;
+  return <button onClick={onClick} style={TS({width:size,height:size,borderRadius:8,background:T.SURF,border:`1px solid ${T.BORD}`,color:c,fontSize:size>36?20:14,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0})}>{children}</button>;
 }
 
-// ── LANTERN SVG ──────────────────────────────────────────────────────────────
-function LanternSVG(){
+function Bar({v,max,col,h=8}){
+  const T=React.useContext(ThemeCtx);
+  const p=max>0?Math.max(0,Math.min(1,v/max)):0;
+  return <div style={{flex:1,height:h,background:T.BORD,borderRadius:4,overflow:"hidden"}}><div style={{width:`${p*100}%`,height:"100%",background:`linear-gradient(90deg,${col}88,${col})`,borderRadius:4,transition:"width 0.15s ease"}}/></div>;
+}
+
+function Pips({n,filled,col,size=15}){
+  const T=React.useContext(ThemeCtx);
+  return <div style={{display:"flex",gap:3}}>{Array.from({length:n}).map((_,i)=><div key={i} style={{width:size,height:size,borderRadius:3,background:i<filled?col:"transparent",border:`1.5px solid ${i<filled?col:T.BORD}`,transition:"background 0.1s"}}/>)}</div>;
+}
+
+// ── GEAR ICON SVG ────────────────────────────────────────────────────────────
+function GearIcon({size=18,col="#626574"}){
   return(
-    <svg viewBox="0 0 120 240" xmlns="http://www.w3.org/2000/svg" style={{width:110,height:220,filter:"drop-shadow(0 0 18px rgba(240,160,32,0.5))"}}>
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={col} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </svg>
+  );
+}
+
+// ── LANTERN SVG (with chain) ─────────────────────────────────────────────────
+function LanternSVG(){
+  const {reduceMotion}=React.useContext(ThemeCtx);
+  const chainLinks=[
+    {cy:-100,rx:7,ry:3},{cy:-88,rx:3,ry:6},
+    {cy:-76, rx:7,ry:3},{cy:-64,rx:3,ry:6},
+    {cy:-52, rx:7,ry:3},{cy:-40,rx:3,ry:6},
+    {cy:-28, rx:7,ry:3},{cy:-16,rx:3,ry:6},
+    {cy:-4,  rx:7,ry:3},
+  ];
+  return(
+    <svg viewBox="0 -110 120 350" xmlns="http://www.w3.org/2000/svg"
+         style={{width:110,height:321,
+           filter:"drop-shadow(0 0 28px rgba(230,140,18,0.72)) drop-shadow(0 8px 20px rgba(0,0,0,0.75))",
+           animation:reduceMotion?"none":"lanternSway 5.5s ease-in-out infinite",
+           transformOrigin:"50% 0%",
+         }}>
       <defs>
-        <radialGradient id="ig" cx="50%" cy="55%"><stop offset="0%" stopColor="#ffe090" stopOpacity="1"/><stop offset="45%" stopColor="#f08020" stopOpacity="0.85"/><stop offset="100%" stopColor="#c04000" stopOpacity="0.15"/></radialGradient>
-        <radialGradient id="fg" cx="50%" cy="0%"><stop offset="0%" stopColor="#f09020" stopOpacity="0.7"/><stop offset="100%" stopColor="#f09020" stopOpacity="0"/></radialGradient>
+        <radialGradient id="ig" cx="54%" cy="48%">
+          <stop offset="0%"   stopColor="#fff8d0" stopOpacity="1"/>
+          <stop offset="20%"  stopColor="#ffcc50" stopOpacity="0.98"/>
+          <stop offset="48%"  stopColor="#f07010" stopOpacity="0.9"/>
+          <stop offset="76%"  stopColor="#c04000" stopOpacity="0.45"/>
+          <stop offset="100%" stopColor="#700000" stopOpacity="0.08"/>
+        </radialGradient>
+        <linearGradient id="sd" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stopColor="#000" stopOpacity="0.52"/>
+          <stop offset="18%"  stopColor="#000" stopOpacity="0.12"/>
+          <stop offset="50%"  stopColor="#000" stopOpacity="0"/>
+          <stop offset="82%"  stopColor="#000" stopOpacity="0.1"/>
+          <stop offset="100%" stopColor="#000" stopOpacity="0.42"/>
+        </linearGradient>
+        <radialGradient id="sp" cx="30%" cy="28%">
+          <stop offset="0%"   stopColor="#fff" stopOpacity="0.28"/>
+          <stop offset="55%"  stopColor="#fff" stopOpacity="0.05"/>
+          <stop offset="100%" stopColor="#fff" stopOpacity="0"/>
+        </radialGradient>
+        <radialGradient id="fg" cx="50%" cy="0%">
+          <stop offset="0%"   stopColor="#f09020" stopOpacity="0.95"/>
+          <stop offset="100%" stopColor="#f09020" stopOpacity="0"/>
+        </radialGradient>
+        <filter id="gf" x="-70%" y="-70%" width="240%" height="240%">
+          <feGaussianBlur stdDeviation="3.5" result="b"/>
+          <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <linearGradient id="cg" x1="20%" y1="0%" x2="80%" y2="100%">
+          <stop offset="0%"   stopColor="#e0b850"/>
+          <stop offset="45%"  stopColor="#a07828"/>
+          <stop offset="100%" stopColor="#5a3c0a"/>
+        </linearGradient>
       </defs>
-      {/* Ring */}
-      <ellipse cx="60" cy="15" rx="16" ry="11" fill="none" stroke="#b09040" strokeWidth="3.5"/>
-      <rect x="55" y="15" width="10" height="16" fill="#9a7830"/>
+
+      {/* Chain wall mount */}
+      <rect x="54" y="-109" width="12" height="9" rx="2" fill="#8a6820" stroke="#c09030" strokeWidth="0.8"/>
+      <rect x="57" y="-103" width="6" height="5" rx="1" fill="#6a4c12"/>
+
+      {/* Chain links */}
+      {chainLinks.map((lk,i)=>(
+        <ellipse key={i} cx="60" cy={lk.cy} rx={lk.rx} ry={lk.ry}
+          fill="url(#cg)" stroke="#c09030" strokeWidth="0.9"/>
+      ))}
+      {/* Inner highlight on each link */}
+      {chainLinks.map((lk,i)=>(
+        <ellipse key={`h${i}`} cx={60-(lk.rx>5?1.5:0.5)} cy={lk.cy-(lk.ry>4?1.5:0.8)}
+          rx={lk.rx*0.5} ry={lk.ry*0.4}
+          fill="none" stroke="#e8c060" strokeWidth="0.6" opacity="0.55"/>
+      ))}
+
+      {/* Top ring */}
+      <ellipse cx="60" cy="15" rx="16" ry="11" fill="none" stroke="#c09840" strokeWidth="3.5"/>
+      <rect x="56" y="15" width="8" height="16" fill="#9a7830" rx="1"/>
+
       {/* Cap */}
-      <polygon points="28,31 92,31 98,48 22,48" fill="#7a6028"/>
+      <polygon points="28,31 92,31 98,48 22,48" fill="#6a5018"/>
+      <polygon points="28,31 92,31 98,48 22,48" fill="url(#sd)" opacity="0.45"/>
       {[40,55,65,80].map((x,i)=><polygon key={i} points={`${x-5},31 ${x},17 ${x+5},31`} fill="#c89a3a"/>)}
-      {/* Glass glow body */}
-      <rect x="24" y="48" width="72" height="148" rx="3" fill="url(#ig)" opacity="0.92">
-        <animate attributeName="opacity" values="0.92;1;0.88;0.96;0.92" dur="0.9s" repeatCount="indefinite"/>
+      <line x1="22" y1="48" x2="98" y2="48" stroke="#d4a830" strokeWidth="0.9" strokeOpacity="0.5"/>
+
+      {/* Glass body */}
+      <rect x="24" y="48" width="72" height="148" rx="2" fill="#1a0400" opacity="0.32"/>
+      <rect x="24" y="48" width="72" height="148" rx="2" fill="url(#ig)">
+        <animate attributeName="opacity" values="0.87;1;0.82;0.96;0.87" dur="1.05s" repeatCount="indefinite"/>
       </rect>
+      <rect x="24" y="48" width="72" height="148" rx="2" fill="url(#sd)"/>
+      <rect x="24" y="48" width="72" height="148" rx="2" fill="url(#sp)"/>
+
       {/* Iron verticals */}
-      {[24,43,60,77,96].map((x,i)=><line key={i} x1={x} y1="48" x2={x} y2="196" stroke="#9a7830" strokeWidth={i===0||i===4?4:2}/>)}
-      {/* Iron horizontals */}
-      {[90,130,170].map((y,i)=><line key={i} x1="24" y1={y} x2="96" y2={y} stroke="#9a7830" strokeWidth="2.5"/>)}
-      {/* Gothic arch tops */}
-      <path d="M43,48 Q60,68 77,48" fill="none" stroke="#9a7830" strokeWidth="2"/>
-      <path d="M24,48 Q34,64 43,48" fill="none" stroke="#9a7830" strokeWidth="1.5"/>
-      <path d="M77,48 Q87,64 96,48" fill="none" stroke="#9a7830" strokeWidth="1.5"/>
-      {/* 8-pointed star */}
-      <path d="M60,108 l3,9 7-3-5,7 9,3-9,2 3,9-8-6-8,6 3-9-9-2 9-3-5-7 7,3Z" fill="#ffd060">
-        <animate attributeName="opacity" values="0.7;1;0.55;0.88;0.7" dur="1.3s" repeatCount="indefinite"/>
+      {[24,43,60,77,96].map((x,i)=>(
+        <line key={i} x1={x} y1="48" x2={x} y2="196"
+          stroke={i===0||i===4?"#7a6010":"#9a8030"}
+          strokeWidth={i===0||i===4?4:2}/>
+      ))}
+      {[90,130,170].map((y,i)=>(
+        <line key={i} x1="24" y1={y} x2="96" y2={y} stroke="#9a8030" strokeWidth="2.5"/>
+      ))}
+      <path d="M43,48 Q60,68 77,48" fill="none" stroke="#9a8030" strokeWidth="2"/>
+      <path d="M24,48 Q34,64 43,48" fill="none" stroke="#9a8030" strokeWidth="1.5"/>
+      <path d="M77,48 Q87,64 96,48" fill="none" stroke="#9a8030" strokeWidth="1.5"/>
+
+      {/* Star medallion */}
+      <path d="M60,108 l3,9 7-3-5,7 9,3-9,2 3,9-8-6-8,6 3-9-9-2 9-3-5-7 7,3Z"
+        fill="#ffd060" filter="url(#gf)">
+        <animate attributeName="opacity" values="0.6;1;0.48;0.92;0.6" dur="1.5s" repeatCount="indefinite"/>
       </path>
-      {/* Outer flame */}
-      <ellipse cx="60" cy="147" rx="14" ry="18" fill="#ff8018" opacity="0.85" style={{transformOrigin:"60px 147px",animation:"flameDance 0.35s ease-in-out infinite"}}/>
-      {/* Inner bright core */}
-      <ellipse cx="60" cy="145" rx="7" ry="11" fill="#fff4a0" opacity="0.9" style={{transformOrigin:"60px 145px",animation:"flameDance 0.28s ease-in-out infinite"}}/>
+
+      {/* Flame layers */}
+      <ellipse cx="60" cy="149" rx="16" ry="20" fill="#f05008" opacity="0.42">
+        <animate attributeName="rx" values="16;20;13;18;16" dur="0.56s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.38;0.56;0.3;0.52;0.38" dur="0.88s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="60" cy="146" rx="13" ry="18" fill="#ff5e0c" opacity="0.88">
+        <animate attributeName="rx" values="13;15;11;14;13" dur="0.42s" repeatCount="indefinite"/>
+        <animate attributeName="ry" values="18;16;20;17;18" dur="0.37s" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="146;144;148;145;146" dur="0.49s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="60" cy="143" rx="9" ry="14" fill="#ffaa20" opacity="0.95">
+        <animate attributeName="rx" values="9;11;7;10;9" dur="0.31s" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="143;141;145;142;143" dur="0.34s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="60" cy="140" rx="6" ry="10" fill="#ffec70" opacity="0.98">
+        <animate attributeName="rx" values="6;7;5;6;6" dur="0.27s" repeatCount="indefinite"/>
+        <animate attributeName="cy" values="140;138;142;139;140" dur="0.3s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="60" cy="133" rx="3" ry="6" fill="#fffae0" opacity="0.84" filter="url(#gf)">
+        <animate attributeName="cy" values="133;130;135;131;133" dur="0.31s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.84;1;0.6;0.92;0.84" dur="0.44s" repeatCount="indefinite"/>
+      </ellipse>
+
       {/* Base */}
-      <rect x="20" y="196" width="80" height="13" rx="3" fill="#7a6028"/>
-      <rect x="15" y="209" width="90" height="7" rx="2" fill="#6a5020"/>
+      <rect x="20" y="196" width="80" height="13" rx="2" fill="#7a6028"/>
+      <rect x="15" y="209" width="90" height="7"  rx="2" fill="#6a5020"/>
+      <line x1="20" y1="196" x2="100" y2="196" stroke="#c09030" strokeWidth="0.9" strokeOpacity="0.45"/>
+
       {/* Floor glow */}
-      <ellipse cx="60" cy="228" rx="55" ry="12" fill="url(#fg)">
-        <animate attributeName="opacity" values="0.8;1;0.6;0.85;0.8" dur="0.75s" repeatCount="indefinite"/>
-        <animate attributeName="rx" values="55;65;50;60;55" dur="0.9s" repeatCount="indefinite"/>
+      <ellipse cx="60" cy="228" rx="60" ry="13" fill="url(#fg)">
+        <animate attributeName="opacity" values="0.7;1;0.52;0.88;0.7" dur="1.1s" repeatCount="indefinite"/>
+        <animate attributeName="rx" values="60;76;52;68;60" dur="1.35s" repeatCount="indefinite"/>
+      </ellipse>
+      <ellipse cx="60" cy="232" rx="84" ry="19" fill="url(#fg)" opacity="0.2">
+        <animate attributeName="opacity" values="0.2;0.36;0.14;0.28;0.2" dur="1.6s" repeatCount="indefinite"/>
+        <animate attributeName="rx" values="84;100;74;92;84" dur="1.85s" repeatCount="indefinite"/>
       </ellipse>
     </svg>
   );
 }
 
 // ── NIGHT PARTICLES ──────────────────────────────────────────────────────────
-const NIGHT_PX = Array.from({length:28},(_,i)=>({
-  id:i, x:Math.random()*100, y:Math.random()*100,
-  sz:Math.random()*2+0.8, dur:Math.random()*7+4, delay:Math.random()*-10,
-  op:Math.random()*0.5+0.2,
-  dx:`${(Math.random()-.5)*40}px`, dy:`${-70-Math.random()*50}px`,
-  col: Math.random()<0.7?"#c8d8ff":"#f0c080",
+const NIGHT_PX=Array.from({length:44},(_,i)=>({
+  id:i,x:Math.random()*100,y:Math.random()*100,
+  sz:Math.random()*3.5+1.2,dur:Math.random()*7+4,delay:Math.random()*-10,
+  op:Math.random()*0.5+0.48,
+  dx:`${(Math.random()-.5)*40}px`,dy:`${-70-Math.random()*50}px`,
+  col:Math.random()<0.45?"#c8d8ff":Math.random()<0.7?"#f0c080":"#f08030",
 }));
 function NightParticles(){
+  const {reduceMotion}=React.useContext(ThemeCtx);
+  if(reduceMotion)return null;
   return(
     <div style={{position:"fixed",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:0}}>
       {NIGHT_PX.map(p=>(
@@ -282,11 +373,13 @@ function NightParticles(){
   );
 }
 
-// ── EMBER PARTICLES (per character card) ─────────────────────────────────────
+// ── EMBER PARTICLES ──────────────────────────────────────────────────────────
 function Embers({col,count=8}){
+  const {reduceMotion}=React.useContext(ThemeCtx);
+  if(reduceMotion)return null;
   const embers=Array.from({length:count},(_,i)=>({
-    id:i, x:5+Math.random()*90, y:15+Math.random()*70,
-    sz:Math.random()*4+2, dur:Math.random()*2.5+1.5, delay:Math.random()*-3,
+    id:i,x:5+Math.random()*90,y:15+Math.random()*70,
+    sz:Math.random()*4+2,dur:Math.random()*2.5+1.5,delay:Math.random()*-3,
     ex:`${(Math.random()-.5)*60}px`,
   }));
   return(
@@ -304,38 +397,36 @@ function Embers({col,count=8}){
   );
 }
 
-
 // ── PER-CHARACTER PARTICLES ──────────────────────────────────────────────────
-const CHAR_PX = {};
-ORDER.forEach(id => {
-  const seed = id.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
-  const rng = (n) => { const x = Math.sin(seed + n) * 10000; return x - Math.floor(x); };
-  CHAR_PX[id] = Array.from({length:18}, (_,i) => ({
-    id:i, x:rng(i)*100, y:rng(i+50)*100,
-    sz:rng(i+100)*4+2.5, dur:rng(i+200)*6+5,
+const CHAR_PX={};
+ORDER.forEach(id=>{
+  const seed=id.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+  const rng=(n)=>{const x=Math.sin(seed+n)*10000;return x-Math.floor(x);};
+  CHAR_PX[id]=Array.from({length:26},(_,i)=>({
+    id:i,x:rng(i)*100,y:rng(i+50)*100,
+    sz:rng(i+100)*4+2.5,dur:rng(i+200)*6+5,
     delay:rng(i+300)*-12,
-    op:rng(i+400)*0.25+0.08,
-    dx:`${(rng(i+500)-.5)*28}px`, dy:`${-55-rng(i+600)*35}px`,
+    op:rng(i+400)*0.45+0.28,
+    dx:`${(rng(i+500)-.5)*28}px`,dy:`${-55-rng(i+600)*35}px`,
   }));
 });
 function CharParticles({charId}){
+  const {reduceMotion}=React.useContext(ThemeCtx);
+  if(reduceMotion)return null;
   const col=CH[charId].col;
   return(
     <div style={{position:"absolute",inset:0,overflow:"hidden",pointerEvents:"none",zIndex:1}}>
       {CHAR_PX[charId].map(p=>(
         <div key={p.id} style={{
-          position:"absolute",
-          left:`${p.x}%`,top:`${p.y}%`,
+          position:"absolute",left:`${p.x}%`,top:`${p.y}%`,
           width:p.sz,height:p.sz,borderRadius:"50%",
-          background:col,
-          boxShadow:`0 0 ${p.sz*2}px ${col}88`,
+          background:col,boxShadow:`0 0 ${p.sz*2}px ${col}88`,
           animation:`charPart ${p.dur}s ease-out ${p.delay}s infinite`,
         }}/>
       ))}
     </div>
   );
 }
-
 
 // ── STATUS TOKENS ────────────────────────────────────────────────────────────
 const PTOK=[
@@ -353,51 +444,57 @@ const ETOK=[
   {id:"stealthed", l:"STEALTH",   col:"#4a8fd6"},
 ];
 function StatusChip({label,active,col,onToggle,block=false}){
+  const T=React.useContext(ThemeCtx);
   return(
     <button onClick={onToggle} style={TS({
       padding:"6px 8px",borderRadius:16,fontSize:9,fontWeight:700,letterSpacing:1.2,
       transition:"all 0.15s",flexShrink:0,
       width:block?"100%":"auto",textAlign:block?"center":"left",
       background:active?`${col}22`:"transparent",
-      border:`1px solid ${active?col:BORD}`,
-      color:active?col:MUT,
+      border:`1px solid ${active?col:T.BORD}`,
+      color:active?col:T.MUT,
       boxShadow:active?`0 0 8px ${col}44`:"none",
     })}>{label}</button>
   );
 }
 
 // ── HOME SCREEN ──────────────────────────────────────────────────────────────
-function HomeScreen({onPlayer,onLeader,savedCharId,savedEnemyCount,onContPlayer,onContLeader}){
+function HomeScreen({onPlayer,onLeader,savedCharId,savedEnemyCount,onContPlayer,onContLeader,onSettings}){
+  const T=React.useContext(ThemeCtx);
   return(
-    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 24px",gap:32,position:"relative",overflow:"hidden"}}>
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 24px",gap:32,position:"relative",overflow:"hidden",background:T.BG}}>
       <NightParticles/>
+      {/* Settings gear */}
+      <button onClick={onSettings} style={TS({position:"absolute",top:16,right:16,zIndex:2,background:"none",border:`1px solid ${T.BORD}`,borderRadius:8,padding:"8px 10px",color:T.MUT,display:"flex",alignItems:"center",justifyContent:"center"})}>
+        <GearIcon size={18} col={T.MUT}/>
+      </button>
       <div style={{textAlign:"center",zIndex:1}}>
-        <div style={{fontSize:12,letterSpacing:5,color:MUT,fontFamily:"'Cinzel',serif",marginBottom:12,textTransform:"uppercase"}}>Companion App</div>
+        <div style={{fontSize:12,letterSpacing:5,color:T.MUT,fontFamily:"'Cinzel',serif",marginBottom:12,textTransform:"uppercase"}}>Companion App</div>
         <LanternSVG/>
         <div style={{marginTop:16}}>
           <div style={{fontSize:13,letterSpacing:4,color:"#c8a951",fontFamily:"'Cinzel',serif",fontWeight:600,marginBottom:4}}>THE</div>
-          <div style={{fontSize:46,fontWeight:900,letterSpacing:3,color:TXT,fontFamily:"'Cinzel Decorative',serif",lineHeight:0.95,textTransform:"uppercase"}}>LAST<br/>LANTERN</div>
+          <div style={{fontSize:46,fontWeight:900,letterSpacing:3,color:T.TXT,fontFamily:"'Cinzel Decorative',serif",lineHeight:0.95,textTransform:"uppercase"}}>LAST<br/>LANTERN</div>
         </div>
         <div style={{width:60,height:2,margin:"18px auto 0",background:"linear-gradient(90deg,transparent,#c8a951,transparent)"}}/>
       </div>
       {(savedCharId||savedEnemyCount>0)&&(
         <div style={{display:"flex",flexDirection:"column",gap:8,width:"100%",maxWidth:340,zIndex:1,marginBottom:8}}>
           {savedCharId&&(
-            <button onClick={onContPlayer} style={TS({background:"rgba(200,169,81,0.10)",border:"1px solid rgba(200,169,81,0.40)",borderRadius:12,padding:"14px 18px",width:"100%",display:"flex",alignItems:"center",gap:14,color:TXT})}>
+            <button onClick={onContPlayer} style={TS({background:"rgba(200,169,81,0.10)",border:"1px solid rgba(200,169,81,0.40)",borderRadius:12,padding:"14px 18px",width:"100%",display:"flex",alignItems:"center",gap:14,color:T.TXT})}>
               <span style={{fontSize:22}}>↩</span>
               <div style={{flex:1,textAlign:"left"}}>
                 <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:"#c8a951",fontFamily:"'Cinzel',serif"}}>CONTINUE</div>
-                <div style={{fontSize:10,color:MUT,marginTop:2}}>Resume as {CH[savedCharId].n} — {CH[savedCharId].ti}</div>
+                <div style={{fontSize:10,color:T.MUT,marginTop:2}}>Resume as {CH[savedCharId].n} — {CH[savedCharId].ti}</div>
               </div>
               <span style={{color:"#c8a951",fontSize:16}}>›</span>
             </button>
           )}
           {savedEnemyCount>0&&(
-            <button onClick={onContLeader} style={TS({background:"rgba(212,64,64,0.10)",border:"1px solid rgba(212,64,64,0.35)",borderRadius:12,padding:"14px 18px",width:"100%",display:"flex",alignItems:"center",gap:14,color:TXT})}>
+            <button onClick={onContLeader} style={TS({background:"rgba(212,64,64,0.10)",border:"1px solid rgba(212,64,64,0.35)",borderRadius:12,padding:"14px 18px",width:"100%",display:"flex",alignItems:"center",gap:14,color:T.TXT})}>
               <span style={{fontSize:22}}>⚔</span>
               <div style={{flex:1,textAlign:"left"}}>
                 <div style={{fontSize:11,fontWeight:700,letterSpacing:1.5,color:"#d44040",fontFamily:"'Cinzel',serif"}}>CONTINUE ENCOUNTER</div>
-                <div style={{fontSize:10,color:MUT,marginTop:2}}>{savedEnemyCount} {savedEnemyCount===1?"enemy":"enemies"} active</div>
+                <div style={{fontSize:10,color:T.MUT,marginTop:2}}>{savedEnemyCount} {savedEnemyCount===1?"enemy":"enemies"} active</div>
               </div>
               <span style={{color:"#d44040",fontSize:16}}>›</span>
             </button>
@@ -405,14 +502,13 @@ function HomeScreen({onPlayer,onLeader,savedCharId,savedEnemyCount,onContPlayer,
         </div>
       )}
       <div style={{display:"flex",flexDirection:"column",gap:12,width:"100%",maxWidth:340,zIndex:1}}>
-        {[{icon:"⚔",label:"PLAYER",sub:"Track your survivor",fn:onPlayer},{icon:"👁",label:"DUNGEON MASTER",sub:"Manage the encounter",fn:onLeader}].map(({icon,label,sub,fn})=>(
-          <button key={label} onClick={fn} style={TS({background:"rgba(17,20,32,0.85)",border:`1px solid ${BORD}`,borderRadius:12,padding:"20px",textAlign:"left",color:TXT,display:"flex",alignItems:"center",gap:16,backdropFilter:"blur(8px)"})}>
-            <span style={{fontSize:26}}>{icon}</span>
+        {[{label:"PLAYER",sub:"Track your survivor",fn:onPlayer},{label:"DUNGEON MASTER",sub:"Manage the encounter",fn:onLeader}].map(({label,sub,fn})=>(
+          <button key={label} onClick={fn} style={TS({background:T.CARD,border:`1px solid ${T.BORD}`,borderRadius:12,padding:"20px",textAlign:"left",color:T.TXT,display:"flex",alignItems:"center",gap:16})}>
             <div style={{flex:1}}>
-              <div style={{fontSize:13,fontWeight:700,letterSpacing:2,fontFamily:"'Cinzel',serif"}}>{label}</div>
-              <div style={{fontSize:11,color:MUT,marginTop:3}}>{sub}</div>
+              <div style={{fontSize:13,fontWeight:700,letterSpacing:2,fontFamily:"'Cinzel',serif",color:T.TXT}}>{label}</div>
+              <div style={{fontSize:11,color:T.MUT,marginTop:3}}>{sub}</div>
             </div>
-            <span style={{color:MUT,fontSize:18}}>›</span>
+            <span style={{color:T.MUT,fontSize:18}}>›</span>
           </button>
         ))}
       </div>
@@ -420,20 +516,19 @@ function HomeScreen({onPlayer,onLeader,savedCharId,savedEnemyCount,onContPlayer,
   );
 }
 
-
-
 // ── CHARACTER SELECT ─────────────────────────────────────────────────────────
 function CharSelectScreen({onBack,onSelect}){
+  const T=React.useContext(ThemeCtx);
   const [pressedId,setPressedId]=useState(null);
   function handleSelect(id){
     setPressedId(id);
-    setTimeout(()=>{ setPressedId(null); onSelect(id); },160);
+    setTimeout(()=>{setPressedId(null);onSelect(id);},160);
   }
   return(
-    <div style={{height:"100vh",display:"flex",flexDirection:"column"}}>
-      <div style={{flexShrink:0,display:"flex",alignItems:"center",padding:"14px 16px",borderBottom:`1px solid ${BORD}`,background:CARD,gap:12}}>
-        <button onClick={onBack} style={TS({background:"none",color:MUT,fontSize:22,padding:"4px 8px"})}>‹</button>
-        <span style={{fontSize:10,letterSpacing:3,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif"}}>SELECT SURVIVOR</span>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",background:T.BG}}>
+      <div style={{flexShrink:0,display:"flex",alignItems:"center",padding:"14px 16px",borderBottom:`1px solid ${T.BORD}`,background:T.CARD,gap:12}}>
+        <button onClick={onBack} style={TS({background:"none",color:T.MUT,fontSize:22,padding:"4px 8px"})}>‹</button>
+        <span style={{fontSize:10,letterSpacing:3,color:T.MUT,fontWeight:700,fontFamily:"'Cinzel',serif"}}>SELECT SURVIVOR</span>
       </div>
       <div style={{flex:1,overflowY:"auto"}}>
         {ORDER.map(id=>{
@@ -442,30 +537,27 @@ function CharSelectScreen({onBack,onSelect}){
             <button key={id} onPointerDown={()=>setPressedId(id)} onPointerUp={()=>handleSelect(id)} onPointerLeave={()=>setPressedId(null)} style={TS({
               display:"flex",alignItems:"center",
               width:"100%",minHeight:96,position:"relative",overflow:"hidden",
-              background:pressedId===id?`linear-gradient(100deg,#090b12 0%,${c.col}30 55%,${c.col}20 100%)`:`linear-gradient(100deg,#090b12 0%,${c.col}20 55%,${c.col}12 100%)`,
+              background:pressedId===id?`linear-gradient(100deg,${T.BG} 0%,${c.col}30 55%,${c.col}20 100%)`:`linear-gradient(100deg,${T.BG} 0%,${c.col}20 55%,${c.col}12 100%)`,
               transform:pressedId===id?"scale(0.985)":"scale(1)",
               transition:"transform 0.12s ease, background 0.12s ease",
-              borderBottom:`1px solid ${BORD}`,
+              borderBottom:`1px solid ${T.BORD}`,
               borderLeft:`5px solid ${c.col}`,
-              textAlign:"left",color:TXT,
+              textAlign:"left",color:T.TXT,
             })}>
               <Embers col={c.col} count={5}/>
-              {/* Name + info */}
               <div style={{flex:1,zIndex:1,padding:"0 12px 0 16px"}}>
                 <div style={{fontSize:24,fontWeight:900,color:c.col,fontFamily:"'Cinzel Decorative',serif",lineHeight:1.1,textShadow:`0 0 24px ${c.col}55`}}>{c.n}</div>
-                <div style={{fontSize:11,color:TXT,fontFamily:"'Cinzel',serif",letterSpacing:1,marginTop:3,opacity:0.85}}>{c.ti}</div>
-                <div style={{fontSize:9.5,color:MUT,marginTop:2}}>{c.ar}</div>
+                <div style={{fontSize:11,color:T.TXT,fontFamily:"'Cinzel',serif",letterSpacing:1,marginTop:3,opacity:0.85}}>{c.ti}</div>
+                <div style={{fontSize:9.5,color:T.MUT,marginTop:2}}>{c.ar}</div>
               </div>
-              {/* Stats — horizontal trio */}
               <div style={{flexShrink:0,display:"flex",gap:12,alignItems:"center",paddingRight:4,zIndex:1}}>
-                {[["HP",c.hp,"#c8a951"],["EN",c.en,EN_C],["SPD",c.spd,MUT]].map(([k,v,sc])=>(
+                {[["HP",c.hp,"#c8a951"],["EN",c.en,EN_C],["SPD",c.spd,T.MUT]].map(([k,v,sc])=>(
                   <div key={k} style={{textAlign:"center",lineHeight:1}}>
                     <div style={{fontSize:18,fontWeight:900,color:sc,fontFamily:"'Cinzel',serif"}}>{v}</div>
-                    <div style={{fontSize:8,color:MUT,letterSpacing:1.5,marginTop:2}}>{k}</div>
+                    <div style={{fontSize:8,color:T.MUT,letterSpacing:1.5,marginTop:2}}>{k}</div>
                   </div>
                 ))}
               </div>
-              {/* Arrow */}
               <div style={{color:`${c.col}66`,fontSize:20,margin:"0 14px 0 10px",zIndex:1,flexShrink:0}}>›</div>
             </button>
           );
@@ -478,9 +570,9 @@ function CharSelectScreen({onBack,onSelect}){
 // ── 3D DICE MODAL ────────────────────────────────────────────────────────────
 const DOTS={1:[[50,50]],2:[[27,27],[73,73]],3:[[27,27],[50,50],[73,73]],4:[[27,27],[73,27],[27,73],[73,73]],5:[[27,27],[73,27],[50,50],[27,73],[73,73]],6:[[27,27],[73,27],[27,50],[73,50],[27,73],[73,73]]};
 const FACE_T={"1":"translateZ(45px)","6":"rotateY(180deg) translateZ(45px)","2":"rotateY(90deg) translateZ(45px)","5":"rotateY(-90deg) translateZ(45px)","3":"rotateX(-90deg) translateZ(45px)","4":"rotateX(90deg) translateZ(45px)"};
-// Container rotation to show face: 1→(0,0), 6→(0,180), 2→(0,-90), 5→(0,90), 3→(90,0), 4→(-90,0)
 const FACE_ROT={1:[0,0],2:[0,-90],3:[90,0],4:[-90,0],5:[0,90],6:[0,180]};
 function DiceModal({onDismiss,onResult}){
+  const T=React.useContext(ThemeCtx);
   const cubeRef=useRef(null);
   const [done,setDone]=useState(false);
   const [res,setRes]=useState(null);
@@ -488,13 +580,13 @@ function DiceModal({onDismiss,onResult}){
     const result=Math.floor(Math.random()*6)+1;
     const [fr,fy]=FACE_ROT[result];
     const spins=3;
-    const tX=fr+360*spins, tY=fy+360*spins;
-    const t0=Date.now(), dur=1400;
+    const tX=fr+360*spins,tY=fy+360*spins;
+    const t0=Date.now(),dur=1400;
     let raf;
     function frame(){
       const t=Math.min((Date.now()-t0)/dur,1);
       const ease=1-Math.pow(1-t,3);
-      if(cubeRef.current) cubeRef.current.style.transform=`rotateX(${ease*tX}deg) rotateY(${ease*tY}deg)`;
+      if(cubeRef.current)cubeRef.current.style.transform=`rotateX(${ease*tX}deg) rotateY(${ease*tY}deg)`;
       if(t<1){raf=requestAnimationFrame(frame);}
       else{setDone(true);setRes(result);onResult(result);}
     }
@@ -517,27 +609,30 @@ function DiceModal({onDismiss,onResult}){
       {done&&res&&(
         <div style={{fontSize:36,fontWeight:900,fontFamily:"'Cinzel Decorative',serif",color:res<=2?"#d44040":res>=5?"#2db86a":"#c8a951",animation:"fadeIn 0.3s ease-out both"}}>{res}</div>
       )}
-      <div style={{fontSize:11,color:MUT,letterSpacing:1}}>tap to dismiss</div>
+      <div style={{fontSize:11,color:T.MUT,letterSpacing:1}}>tap to dismiss</div>
     </div>
   );
 }
 
 // ── ABILITY CARD ─────────────────────────────────────────────────────────────
-function AbilityCard({ab,idx,expanded,onToggle}){
+function AbilityCard({ab}){
+  const T=React.useContext(ThemeCtx);
   const st=AT[ab.t]||AT.basic;
-  const open=expanded===idx;
+  const isGambit=ab.t==="gambit";
   return(
-    <div style={{background:CARD,border:`1px solid ${BORD}`,borderRadius:10,overflow:"hidden",marginBottom:8}}>
-      <button onClick={()=>onToggle(idx)} style={TS({width:"100%",padding:"12px 14px",background:"none",color:TXT,display:"flex",alignItems:"center",gap:10,textAlign:"left"})}>
+    <div style={{
+      background:isGambit?`linear-gradient(120deg,${T.CARD},rgba(200,48,32,0.08))`:T.CARD,
+      border:`1px solid ${isGambit?"rgba(200,64,64,0.32)":T.BORD}`,
+      borderLeft:`3px solid ${st.c}`,
+      borderRadius:8,marginBottom:8,
+    }}>
+      <div style={{padding:"10px 14px 0",display:"flex",alignItems:"center",gap:10}}>
         <span style={{fontSize:8,fontWeight:700,letterSpacing:1.5,flexShrink:0,color:st.c,background:`${st.c}18`,border:`1px solid ${st.c}44`,padding:"3px 7px",borderRadius:4}}>{st.l}</span>
-        <span style={{flex:1,fontSize:13,fontWeight:600,lineHeight:1.3}}>{ab.n}</span>
-        {ab.c&&<span style={{fontSize:9.5,color:MUT,background:SURF,padding:"2px 7px",borderRadius:4,flexShrink:0}}>{ab.c}</span>}
-        <span style={{color:MUT,fontSize:13,flexShrink:0,display:"inline-block",transform:open?"rotate(90deg)":"none",transition:"transform 0.15s"}}>›</span>
-      </button>
-      <div style={{maxHeight:open?"700px":"0",overflow:"hidden",transition:"max-height 0.38s cubic-bezier(0.4,0,0.2,1)",willChange:"max-height"}}>
-        <div style={{padding:"0 14px 14px",borderTop:`1px solid ${BORD}`}}>
-          <div style={{fontSize:13,color:TXT,lineHeight:1.75,whiteSpace:"pre-wrap",paddingTop:10}}>{ab.d}</div>
-        </div>
+        <span style={{flex:1,fontSize:13,fontWeight:700,lineHeight:1.3,color:T.TXT}}>{ab.n}</span>
+        {ab.c&&<span style={{fontSize:9.5,color:T.MUT,background:T.SURF,padding:"2px 7px",borderRadius:4,flexShrink:0,border:`1px solid ${T.BORD}`}}>{ab.c}</span>}
+      </div>
+      <div style={{padding:"7px 14px 12px",borderTop:`1px solid ${T.BORD}40`,marginTop:8}}>
+        <div style={{fontSize:12.5,color:T.TXT,lineHeight:1.78,whiteSpace:"pre-wrap",opacity:0.88}}>{ab.d}</div>
       </div>
     </div>
   );
@@ -545,7 +640,9 @@ function AbilityCard({ab,idx,expanded,onToggle}){
 
 // ── PLAYER SCREEN ────────────────────────────────────────────────────────────
 const STRESS_ANIM=["","sp1","sp2","sp3","sp4"];
-function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,statusTokens,onToggleStatus,gambitsUsed,onGambit,charTokens,onCharTokens,defBonus,onDef,onHp,onEn,onStress,onExpand,onMission,onBack,entering}){
+function PlayerScreen({char,charId,hp,en,stress,missionMode,statusTokens,onToggleStatus,gambitsUsed,onGambit,charTokens,onCharTokens,defBonus,onDef,onHp,onEn,onStress,onMission,onBack,entering}){
+  const T=React.useContext(ThemeCtx);
+  const {reduceMotion}=T;
   const [diceModal,setDiceModal]=useState(false);
   const [diceResult,setDiceResult]=useState(null);
   const pct=char.hp>0?hp/char.hp:0;
@@ -554,37 +651,63 @@ function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,statusToken
   const sc=stress>=4?"#ff4040":ST_C;
   const sorted=[...char.ab].sort((a,b)=>AB_ORDER.indexOf(a.t)-AB_ORDER.indexOf(b.t));
   return(
-    <div className={`${stressClass}${entering?" slide-in":""}`} style={{height:"100vh",display:"flex",flexDirection:"column",background:BG,position:"relative",boxShadow:`inset 4px 0 32px ${char.col}18, inset -4px 0 32px ${char.col}18`}}>
+    <div className={`${stressClass}${entering?" slide-in":""}`}
+      style={{height:"100vh",display:"flex",flexDirection:"column",background:T.BG,position:"relative",
+        '--ch':char.col,
+        boxShadow:`inset 4px 0 32px ${char.col}18,inset -4px 0 32px ${char.col}18`}}>
       <CharParticles charId={charId}/>
       {diceModal&&<DiceModal onDismiss={()=>setDiceModal(false)} onResult={r=>setDiceResult(r)}/>}
-      {/* Header */}
-      <div style={{flexShrink:0,display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderBottom:`1px solid ${BORD}`,background:CARD}}>
-        <button onClick={onBack} style={TS({background:"none",color:MUT,fontSize:22,padding:"4px 8px"})}>‹</button>
-        <div style={{flex:1}}>
-          <div style={{fontSize:19,fontWeight:900,color:char.col,fontFamily:"'Cinzel Decorative',serif",lineHeight:1}}>{char.n}</div>
-          <div style={{fontSize:10,color:MUT,letterSpacing:1.5,fontFamily:"'Cinzel',serif",marginTop:1}}>{char.ti.toUpperCase()}</div>
+
+      {/* ── Character header (redesigned) ── */}
+      <div style={{
+        flexShrink:0,
+        background:`linear-gradient(135deg,${T.CARD} 0%,${char.col}20 60%,${char.col}12 100%)`,
+        borderBottom:`1px solid ${char.col}40`,
+        padding:"14px 16px",
+        position:"relative",
+        overflow:"hidden",
+      }}>
+        {/* Subtle header glow */}
+        <div style={{position:"absolute",top:0,right:0,width:120,height:"100%",background:`radial-gradient(ellipse at right,${char.col}22 0%,transparent 70%)`,pointerEvents:"none"}}/>
+        <div style={{display:"flex",alignItems:"center",gap:12,position:"relative",zIndex:1}}>
+          <button onClick={onBack} style={TS({background:"none",color:T.MUT,fontSize:22,padding:"4px 8px",flexShrink:0})}>‹</button>
+          {/* Monogram */}
+          <div style={{
+            width:42,height:42,borderRadius:"50%",flexShrink:0,
+            background:`${char.col}18`,
+            border:`2px solid ${char.col}66`,
+            display:"flex",alignItems:"center",justifyContent:"center",
+            boxShadow:`0 0 18px ${char.col}44`,
+          }}>
+            <span style={{fontSize:20,fontWeight:900,color:char.col,fontFamily:"'Cinzel Decorative',serif",lineHeight:1}}>{char.n[0]}</span>
+          </div>
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:20,fontWeight:900,color:char.col,fontFamily:"'Cinzel Decorative',serif",lineHeight:1.1,textShadow:`0 0 20px ${char.col}66`}}>{char.n}</div>
+            <div style={{fontSize:10,color:T.MUT,letterSpacing:1.5,fontFamily:"'Cinzel',serif",marginTop:2}}>{char.ti.toUpperCase()}</div>
+          </div>
+          <span style={{fontSize:9.5,color:T.MUT,background:T.SURF,padding:"3px 8px",borderRadius:4,flexShrink:0,border:`1px solid ${T.BORD}`}}>{char.ar}</span>
         </div>
-        <span style={{fontSize:9.5,color:MUT,background:SURF,padding:"3px 8px",borderRadius:4}}>{char.ar}</span>
       </div>
 
       {/* Scrollable content */}
       <div style={{flex:1,overflowY:"auto"}}>
         {/* Sticky stats */}
-        <div style={{position:"sticky",top:0,zIndex:10,background:CARD,borderBottom:`1px solid ${BORD}`,padding:"16px 16px 14px"}}>
-          {/* ── HP ── */}
+        <div style={{position:"sticky",top:0,zIndex:10,background:T.CARD,borderBottom:`1px solid ${T.BORD}`,padding:"16px 16px 14px"}}>
+          {/* HP */}
           <div style={{marginBottom:14}}>
             <div style={{display:"flex",alignItems:"center",gap:5}}>
               <AdjBtn onClick={()=>onHp(-5)} size={36} col={hpColor}>-5</AdjBtn>
               <AdjBtn onClick={()=>onHp(-1)} size={36}>−</AdjBtn>
               <div style={{flex:1}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:5}}>
-                  <span style={{fontSize:10,letterSpacing:2,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:5}}>
+                  <span style={{fontSize:10,letterSpacing:2,color:T.MUT,fontWeight:700,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:5}}>
                     <span style={{color:hpColor,fontSize:13}}>♥</span> HP
                   </span>
-                  <span style={{fontSize:17,fontWeight:900,color:hpColor,fontVariantNumeric:"tabular-nums"}}>{hp}<span style={{fontSize:11,color:MUT,fontWeight:400}}>/{char.hp}</span></span>
+                  <span style={{fontSize:17,fontWeight:900,color:hpColor,fontVariantNumeric:"tabular-nums"}}>{hp}<span style={{fontSize:11,color:T.MUT,fontWeight:400}}>/{char.hp}</span></span>
                 </div>
-                <div style={{height:11,background:BORD,borderRadius:6,overflow:"hidden",position:"relative"}}>
-                  <div style={{width:`${char.hp>0?(hp/char.hp)*100:0}%`,height:"100%",background:`linear-gradient(90deg,${hpColor}77,${hpColor})`,borderRadius:6,transition:"width 0.2s ease",position:"relative"}}>
+                <div style={{height:11,background:T.BORD,borderRadius:6,overflow:"hidden",position:"relative"}}>
+                  <div style={{width:`${char.hp>0?(hp/char.hp)*100:0}%`,height:"100%",background:`linear-gradient(90deg,${hpColor}77,${hpColor})`,borderRadius:6,transition:"width 0.2s ease",position:"relative",overflow:"hidden"}}>
+                    {!reduceMotion&&<div className="hp-shimmer"/>}
                     <div style={{position:"absolute",right:0,top:0,bottom:0,width:3,background:hpColor,boxShadow:`0 0 10px ${hpColor},0 0 4px ${hpColor}`}}/>
                   </div>
                 </div>
@@ -593,14 +716,11 @@ function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,statusToken
               <AdjBtn onClick={()=>onHp(+5)} size={36} col={hpColor}>+5</AdjBtn>
             </div>
           </div>
-          {/* ── EN + STRESS side by side ── */}
+          {/* EN + STRESS */}
           <div style={{display:"flex",gap:10}}>
-            {/* Energy card */}
             <div style={{flex:1,background:"rgba(74,143,214,0.07)",border:`1px solid rgba(74,143,214,0.18)`,borderRadius:10,padding:"10px 12px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                <span style={{fontSize:9.5,letterSpacing:2,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:4}}>
-                  <span style={{color:EN_C}}>⚡</span> EN
-                </span>
+                <span style={{fontSize:9.5,letterSpacing:2,color:T.MUT,fontWeight:700,fontFamily:"'Cinzel',serif"}}>EN</span>
                 <span style={{fontSize:12,fontWeight:700,color:EN_C}}>{en}/{char.en}</span>
               </div>
               <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:8}}>
@@ -608,9 +728,10 @@ function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,statusToken
                   <div key={i} style={{
                     width:14,height:14,borderRadius:2,transform:"rotate(45deg)",flexShrink:0,
                     background:i<en?EN_C:"transparent",
-                    border:`1.5px solid ${i<en?EN_C:BORD}`,
+                    border:`1.5px solid ${i<en?EN_C:T.BORD}`,
                     boxShadow:i<en?`0 0 7px ${EN_C}99`:"none",
-                    transition:"all 0.15s"
+                    transition:"all 0.15s",
+                    animation:(!reduceMotion&&i<en)?`enPulse 2.4s ease-in-out ${i*0.38}s infinite`:"none",
                   }}/>
                 ))}
               </div>
@@ -619,12 +740,9 @@ function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,statusToken
                 <AdjBtn onClick={()=>onEn(+1)} size={36} col={EN_C}>+</AdjBtn>
               </div>
             </div>
-            {/* Stress card */}
             <div style={{flex:1,background:`rgba(200,64,64,${0.04+stress*0.018})`,border:`1px solid rgba(200,64,64,${0.12+stress*0.06})`,borderRadius:10,padding:"10px 12px",transition:"all 0.3s"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                <span style={{fontSize:9.5,letterSpacing:2,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:4}}>
-                  <span style={{color:sc}}>⚠</span> STRESS
-                </span>
+                <span style={{fontSize:9.5,letterSpacing:2,color:T.MUT,fontWeight:700,fontFamily:"'Cinzel',serif"}}>STRESS</span>
                 <span style={{fontSize:12,fontWeight:700,color:sc}}>{stress}/5</span>
               </div>
               <div style={{display:"flex",justifyContent:"center",gap:5,marginBottom:8}}>
@@ -632,9 +750,10 @@ function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,statusToken
                   <div key={i} style={{
                     width:14,height:14,borderRadius:2,transform:"rotate(45deg)",flexShrink:0,
                     background:i<stress?sc:"transparent",
-                    border:`1.5px solid ${i<stress?sc:BORD}`,
+                    border:`1.5px solid ${i<stress?sc:T.BORD}`,
                     boxShadow:i<stress?`0 0 7px ${sc}99`:"none",
-                    transition:"all 0.15s"
+                    transition:"all 0.15s",
+                    animation:(!reduceMotion&&i<stress)?`stressPulse 1.8s ease-in-out ${i*0.28}s infinite`:"none",
                   }}/>
                 ))}
               </div>
@@ -644,41 +763,41 @@ function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,statusToken
               </div>
             </div>
           </div>
-          {/* ── DEF  ·  Roll d6  ·  Gambit ── */}
-          <div style={{display:"flex",alignItems:"center",gap:6,marginTop:12,paddingTop:10,borderTop:`1px solid ${BORD}`}}>
-            <span style={{fontSize:9,letterSpacing:1,color:"#8ab4d4",fontWeight:700,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:3,flexShrink:0}}>🛡 DEF</span>
+          {/* DEF / d6 / Gambit */}
+          <div style={{display:"flex",alignItems:"center",gap:6,marginTop:12,paddingTop:10,borderTop:`1px solid ${T.BORD}`}}>
+            <span style={{fontSize:9,letterSpacing:1,color:"#8ab4d4",fontWeight:700,fontFamily:"'Cinzel',serif",flexShrink:0}}>DEF</span>
             <AdjBtn onClick={()=>onDef(defBonus-1)} size={32} col="#8ab4d4">−</AdjBtn>
-            <span style={{fontSize:16,fontWeight:900,minWidth:28,textAlign:"center",fontVariantNumeric:"tabular-nums",color:defBonus>0?"#8ab4d4":defBonus<0?"#d44040":MUT}}>{defBonus>0?"+":""}{defBonus}</span>
+            <span style={{fontSize:16,fontWeight:900,minWidth:28,textAlign:"center",fontVariantNumeric:"tabular-nums",color:defBonus>0?"#8ab4d4":defBonus<0?"#d44040":T.MUT}}>{defBonus>0?"+":""}{defBonus}</span>
             <AdjBtn onClick={()=>onDef(defBonus+1)} size={32} col="#8ab4d4">+</AdjBtn>
-            {defBonus!==0&&(<button onClick={()=>onDef(0)} style={TS({fontSize:9,color:MUT,padding:"2px 7px",border:`1px solid ${BORD}`,borderRadius:5,background:"none"})}>RST</button>)}
+            {defBonus!==0&&(<button onClick={()=>onDef(0)} style={TS({fontSize:9,color:T.MUT,padding:"2px 7px",border:`1px solid ${T.BORD}`,borderRadius:5,background:"none"})}>RST</button>)}
             <div style={{flex:1}}/>
-            <button onClick={()=>setDiceModal(true)} style={TS({background:SURF,border:`1px solid ${BORD}`,borderRadius:8,padding:"7px 10px",color:TXT,fontSize:10,fontWeight:700,letterSpacing:1,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:5,flexShrink:0})}>
-              <span style={{fontSize:15}}>⚄</span> d6
+            <button onClick={()=>setDiceModal(true)} style={TS({background:T.SURF,border:`1px solid ${T.BORD}`,borderRadius:8,padding:"7px 10px",color:T.TXT,fontSize:10,fontWeight:700,letterSpacing:1,fontFamily:"'Cinzel',serif",display:"flex",alignItems:"center",gap:5,flexShrink:0})}>
+              ⚄ d6
             </button>
             {diceResult&&(<span style={{fontSize:18,fontWeight:900,color:diceResult<=2?"#d44040":diceResult>=5?"#2db86a":"#c8a951",fontFamily:"'Cinzel Decorative',serif",minWidth:20,textAlign:"center"}}>{diceResult}</span>)}
             <div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
-              <span style={{fontSize:9,letterSpacing:0.5,color:MUT,fontFamily:"'Cinzel',serif"}}>GAM</span>
+              <span style={{fontSize:9,letterSpacing:0.5,color:T.MUT,fontFamily:"'Cinzel',serif"}}>GAM</span>
               {[0,1].map(i=>(
-                <button key={i} onClick={()=>onGambit(gambitsUsed===i+1?i:i+1)} style={TS({width:18,height:18,borderRadius:"50%",background:i<gambitsUsed?"#c84040":"transparent",border:`2px solid ${i<gambitsUsed?"#c84040":BORD}`,boxShadow:i<gambitsUsed?"0 0 8px #c8404088":"none",transition:"all 0.15s"})}/>
+                <button key={i} onClick={()=>onGambit(gambitsUsed===i+1?i:i+1)} style={TS({width:18,height:18,borderRadius:"50%",background:i<gambitsUsed?"#c84040":"transparent",border:`2px solid ${i<gambitsUsed?"#c84040":T.BORD}`,boxShadow:i<gambitsUsed?"0 0 8px #c8404088":"none",transition:"all 0.15s"})}/>
               ))}
             </div>
           </div>
-          {/* Status tokens — 2 × 3 grid */}
+          {/* Status tokens */}
           <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:5,marginTop:10}}>
             {PTOK.map(t=>(
               <StatusChip key={t.id} label={t.l} active={!!(statusTokens&&statusTokens[t.id])} col={t.col} onToggle={()=>onToggleStatus(t.id)} block/>
             ))}
           </div>
-          {/* Char-specific token (Spite / Grip / Calibration) */}
+          {/* Char-specific token */}
           {char.tokenConfig&&(
-            <div style={{display:"flex",alignItems:"center",gap:8,marginTop:10,paddingTop:10,borderTop:`1px solid ${BORD}`}}>
-              <span style={{fontSize:9,letterSpacing:1.5,color:MUT,fontFamily:"'Cinzel',serif",flexShrink:0}}>{char.tokenConfig.name.toUpperCase()}</span>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginTop:10,paddingTop:10,borderTop:`1px solid ${T.BORD}`}}>
+              <span style={{fontSize:9,letterSpacing:1.5,color:T.MUT,fontFamily:"'Cinzel',serif",flexShrink:0}}>{char.tokenConfig.name.toUpperCase()}</span>
               <div style={{display:"flex",gap:5,flex:1}}>
                 {Array.from({length:char.tokenConfig.max}).map((_,i)=>(
                   <button key={i} onClick={()=>onCharTokens(charTokens===i+1?i:i+1)} style={TS({
                     width:18,height:18,borderRadius:3,transform:"rotate(45deg)",flexShrink:0,
                     background:i<charTokens?char.tokenConfig.col:"transparent",
-                    border:`1.5px solid ${i<charTokens?char.tokenConfig.col:BORD}`,
+                    border:`1.5px solid ${i<charTokens?char.tokenConfig.col:T.BORD}`,
                     boxShadow:i<charTokens?`0 0 8px ${char.tokenConfig.col}88`:"none",
                     transition:"all 0.15s",
                   })}/>
@@ -693,28 +812,28 @@ function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,statusToken
           )}
         </div>
 
-        {/* Mission mode selector (for chars with choices) */}
+        {/* Mission mode */}
         {char.mission&&(
           <div style={{padding:"14px 16px 0"}}>
-            <div style={{fontSize:9,letterSpacing:2.5,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",marginBottom:10}}>MISSION MODE</div>
+            <div style={{fontSize:9,letterSpacing:2.5,color:T.MUT,fontWeight:700,fontFamily:"'Cinzel',serif",marginBottom:10}}>MISSION MODE</div>
             <div style={{display:"flex",gap:8,marginBottom:4}}>
               {char.mission.map(m=>(
-                <button key={m.id} onClick={()=>onMission(m.id)} style={TS({flex:1,padding:"10px 10px",background:missionMode===m.id?`${char.col}22`:CARD,border:`1.5px solid ${missionMode===m.id?char.col:BORD}`,borderRadius:9,textAlign:"left",color:missionMode===m.id?char.col:MUT,transition:"all 0.15s"})}>
+                <button key={m.id} onClick={()=>onMission(m.id)} style={TS({flex:1,padding:"10px 10px",background:missionMode===m.id?`${char.col}22`:T.CARD,border:`1.5px solid ${missionMode===m.id?char.col:T.BORD}`,borderRadius:9,textAlign:"left",color:missionMode===m.id?char.col:T.MUT,transition:"all 0.15s"})}>
                   <div style={{fontSize:11,fontWeight:700,fontFamily:"'Cinzel',serif",letterSpacing:0.5}}>{m.l}</div>
-                  <div style={{fontSize:10,marginTop:4,lineHeight:1.4,color:missionMode===m.id?TXT:MUT}}>{m.b}</div>
+                  <div style={{fontSize:10,marginTop:4,lineHeight:1.4,color:missionMode===m.id?T.TXT:T.MUT}}>{m.b}</div>
                 </button>
               ))}
             </div>
-            {!missionMode&&<div style={{fontSize:10,color:"#c8a951",marginBottom:4,textAlign:"center"}}>⚠ Choose your mode before the mission begins</div>}
-            <div style={{height:1,background:BORD,margin:"12px 0"}}/>
+            {!missionMode&&<div style={{fontSize:10,color:"#c8a951",marginBottom:4,textAlign:"center"}}>Choose your mode before the mission begins</div>}
+            <div style={{height:1,background:T.BORD,margin:"12px 0"}}/>
           </div>
         )}
 
         {/* Abilities */}
         <div style={{padding:char.mission?"0 14px 14px":"14px"}}>
-          {!char.mission&&<div style={{fontSize:9,letterSpacing:2.5,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",marginBottom:12}}>ABILITIES & QUIRK</div>}
-          {sorted.map((ab,i)=><AbilityCard key={i} ab={ab} idx={i} expanded={expanded} onToggle={onExpand}/>)}
-          <div style={{fontSize:10,color:MUT,textAlign:"center",padding:"8px 0 24px",letterSpacing:1}}>Final Hollow type: {char.fh}</div>
+          {!char.mission&&<div style={{fontSize:9,letterSpacing:2.5,color:T.MUT,fontWeight:700,fontFamily:"'Cinzel',serif",marginBottom:12}}>ABILITIES & QUIRK</div>}
+          {sorted.map((ab,i)=><AbilityCard key={i} ab={ab}/>)}
+          <div style={{fontSize:10,color:T.MUT,textAlign:"center",padding:"8px 0 24px",letterSpacing:1}}>Final Hollow type: {char.fh}</div>
         </div>
       </div>
     </div>
@@ -723,18 +842,19 @@ function PlayerScreen({char,charId,hp,en,stress,expanded,missionMode,statusToken
 
 // ── ENEMY CARD ───────────────────────────────────────────────────────────────
 function EnemyCard({enemy,onAdjust,onRemove,onToggleStatus}){
+  const T=React.useContext(ThemeCtx);
   const et=ET[enemy.type];
   const hpColor=hpC(enemy.maxHp>0?enemy.hp/enemy.maxHp:0);
   return(
-    <div style={{background:CARD,border:`1px solid ${BORD}`,borderLeft:`3px solid ${et.col}`,borderRadius:10,padding:"14px",marginBottom:10,opacity:enemy.hp===0?0.5:1}}>
+    <div style={{background:T.CARD,border:`1px solid ${T.BORD}`,borderLeft:`3px solid ${et.col}`,borderRadius:10,padding:"14px",marginBottom:10,opacity:enemy.hp===0?0.5:1}}>
       <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
         <span style={{fontSize:9,fontWeight:700,letterSpacing:1,color:et.col,background:et.bg,padding:"3px 8px",borderRadius:4,flexShrink:0}}>{et.l}</span>
-        <span style={{fontSize:14,fontWeight:700,flex:1}}>{enemy.name}</span>
+        <span style={{fontSize:14,fontWeight:700,flex:1,color:T.TXT}}>{enemy.name}</span>
         {enemy.hp===0&&<span style={{fontSize:9,color:ST_C,letterSpacing:1.5,fontWeight:700}}>DOWNED</span>}
-        <button onClick={()=>onRemove(enemy.id)} style={TS({background:"none",color:MUT,fontSize:16,padding:"3px 7px"})}>✕</button>
+        <button onClick={()=>onRemove(enemy.id)} style={TS({background:"none",color:T.MUT,fontSize:16,padding:"3px 7px"})}>✕</button>
       </div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"baseline",marginBottom:7}}>
-        <span style={{fontSize:10,letterSpacing:2,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif"}}>HP</span>
+        <span style={{fontSize:10,letterSpacing:2,color:T.MUT,fontWeight:700,fontFamily:"'Cinzel',serif"}}>HP</span>
         <span style={{fontSize:16,fontWeight:900,color:hpColor,fontVariantNumeric:"tabular-nums"}}>{enemy.hp} / {enemy.maxHp}</span>
       </div>
       <Bar v={enemy.hp} max={enemy.maxHp} col={hpColor} h={10}/>
@@ -753,19 +873,20 @@ function EnemyCard({enemy,onAdjust,onRemove,onToggleStatus}){
 
 // ── LEADER SCREEN ────────────────────────────────────────────────────────────
 function LeaderScreen({enemies,showAdd,newType,newName,nextId,onShowAdd,onHideAdd,onSetType,onSetName,onAdd,onRemove,onAdjust,onToggleStatus,onBack}){
+  const T=React.useContext(ThemeCtx);
   return(
-    <div style={{height:"100vh",display:"flex",flexDirection:"column"}}>
-      <div style={{flexShrink:0,display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderBottom:`1px solid ${BORD}`,background:CARD}}>
-        <button onClick={onBack} style={TS({background:"none",color:MUT,fontSize:22,padding:"4px 8px"})}>‹</button>
-        <span style={{fontSize:11,letterSpacing:3,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",flex:1}}>ENCOUNTER</span>
-        <span style={{fontSize:11,color:MUT,marginRight:8}}>{enemies.length} active</span>
-        <button onClick={onShowAdd} style={TS({background:SURF,border:`1px solid ${BORD}`,borderRadius:8,padding:"8px 14px",color:TXT,fontSize:11,fontWeight:700,fontFamily:"'Cinzel',serif",letterSpacing:1})}>+ ADD</button>
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",background:T.BG}}>
+      <div style={{flexShrink:0,display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderBottom:`1px solid ${T.BORD}`,background:T.CARD}}>
+        <button onClick={onBack} style={TS({background:"none",color:T.MUT,fontSize:22,padding:"4px 8px"})}>‹</button>
+        <span style={{fontSize:11,letterSpacing:3,color:T.MUT,fontWeight:700,fontFamily:"'Cinzel',serif",flex:1}}>ENCOUNTER</span>
+        <span style={{fontSize:11,color:T.MUT,marginRight:8}}>{enemies.length} active</span>
+        <button onClick={onShowAdd} style={TS({background:T.SURF,border:`1px solid ${T.BORD}`,borderRadius:8,padding:"8px 14px",color:T.TXT,fontSize:11,fontWeight:700,fontFamily:"'Cinzel',serif",letterSpacing:1})}>+ ADD</button>
       </div>
       {enemies.length===0?(
         <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,padding:24}}>
           <div style={{fontSize:52,opacity:0.25}}>⚔</div>
-          <div style={{fontSize:15,letterSpacing:2,color:MUT,fontFamily:"'Cinzel',serif",textTransform:"uppercase"}}>No Enemies</div>
-          <div style={{fontSize:12,color:MUT,textAlign:"center",lineHeight:1.7,maxWidth:220}}>Tap <strong style={{color:TXT}}>+ ADD</strong> above to add a Grunt, Elite, or Boss to the encounter</div>
+          <div style={{fontSize:15,letterSpacing:2,color:T.MUT,fontFamily:"'Cinzel',serif",textTransform:"uppercase"}}>No Enemies</div>
+          <div style={{fontSize:12,color:T.MUT,textAlign:"center",lineHeight:1.7,maxWidth:220}}>Tap <strong style={{color:T.TXT}}>+ ADD</strong> above to add a Grunt, Elite, or Boss to the encounter</div>
           <button onClick={onShowAdd} style={TS({marginTop:8,background:`rgba(200,169,81,0.1)`,border:`1.5px solid rgba(200,169,81,0.35)`,borderRadius:10,padding:"14px 36px",color:"#c8a951",fontSize:13,fontWeight:700,fontFamily:"'Cinzel',serif",letterSpacing:1.5})}>
             + ADD ENEMY
           </button>
@@ -777,28 +898,129 @@ function LeaderScreen({enemies,showAdd,newType,newName,nextId,onShowAdd,onHideAd
       )}
       {showAdd&&(
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.65)",display:"flex",flexDirection:"column",justifyContent:"flex-end",zIndex:50}} onClick={e=>{if(e.target===e.currentTarget)onHideAdd();}}>
-          <div style={{background:CARD,borderTop:`1px solid ${BORD}`,borderTopLeftRadius:16,borderTopRightRadius:16,padding:"24px 20px 36px",maxWidth:480,width:"100%",margin:"0 auto"}}>
-            <div style={{fontSize:11,letterSpacing:3,color:MUT,fontWeight:700,fontFamily:"'Cinzel',serif",marginBottom:20}}>ADD ENEMY</div>
+          <div style={{background:T.CARD,borderTop:`1px solid ${T.BORD}`,borderTopLeftRadius:16,borderTopRightRadius:16,padding:"24px 20px 36px",maxWidth:480,width:"100%",margin:"0 auto"}}>
+            <div style={{fontSize:11,letterSpacing:3,color:T.MUT,fontWeight:700,fontFamily:"'Cinzel',serif",marginBottom:20}}>ADD ENEMY</div>
             <div style={{marginBottom:16}}>
-              <div style={{fontSize:10,color:MUT,letterSpacing:1.5,marginBottom:8}}>TYPE</div>
+              <div style={{fontSize:10,color:T.MUT,letterSpacing:1.5,marginBottom:8}}>TYPE</div>
               <div style={{display:"flex",gap:8}}>
                 {Object.entries(ET).map(([k,v])=>(
-                  <button key={k} onClick={()=>onSetType(k)} style={TS({flex:1,padding:"11px 0",background:newType===k?`${v.col}22`:SURF,border:`1.5px solid ${newType===k?v.col:BORD}`,borderRadius:8,color:newType===k?v.col:MUT,fontSize:12,fontWeight:700,letterSpacing:1})}>{v.l}</button>
+                  <button key={k} onClick={()=>onSetType(k)} style={TS({flex:1,padding:"11px 0",background:newType===k?`${v.col}22`:T.SURF,border:`1.5px solid ${newType===k?v.col:T.BORD}`,borderRadius:8,color:newType===k?v.col:T.MUT,fontSize:12,fontWeight:700,letterSpacing:1})}>{v.l}</button>
                 ))}
               </div>
             </div>
             <div style={{marginBottom:16}}>
-              <div style={{fontSize:10,color:MUT,letterSpacing:1.5,marginBottom:8}}>NAME (optional)</div>
-              <input value={newName} onChange={e=>onSetName(e.target.value)} placeholder={`${ET[newType].l} ${nextId}`} style={{width:"100%",background:SURF,border:`1px solid ${BORD}`,borderRadius:8,padding:"12px 14px",color:TXT,fontSize:14,fontFamily:"inherit",outline:"none"}}/>
+              <div style={{fontSize:10,color:T.MUT,letterSpacing:1.5,marginBottom:8}}>NAME (optional)</div>
+              <input value={newName} onChange={e=>onSetName(e.target.value)} placeholder={`${ET[newType].l} ${nextId}`} style={{width:"100%",background:T.SURF,border:`1px solid ${T.BORD}`,borderRadius:8,padding:"12px 14px",color:T.TXT,fontSize:14,fontFamily:"inherit",outline:"none"}}/>
             </div>
-            <div style={{marginBottom:20,fontSize:12,color:MUT}}>Starting HP: <span style={{color:TXT,fontWeight:700}}>{ET[newType].defHp}</span> · Max: <span style={{color:TXT,fontWeight:700}}>{ET[newType].maxHp}</span></div>
+            <div style={{marginBottom:20,fontSize:12,color:T.MUT}}>Starting HP: <span style={{color:T.TXT,fontWeight:700}}>{ET[newType].defHp}</span> · Max: <span style={{color:T.TXT,fontWeight:700}}>{ET[newType].maxHp}</span></div>
             <div style={{display:"flex",gap:10}}>
-              <button onClick={onHideAdd} style={TS({flex:1,padding:"14px 0",background:SURF,border:`1px solid ${BORD}`,borderRadius:10,color:MUT,fontSize:13,fontWeight:700})}>Cancel</button>
+              <button onClick={onHideAdd} style={TS({flex:1,padding:"14px 0",background:T.SURF,border:`1px solid ${T.BORD}`,borderRadius:10,color:T.MUT,fontSize:13,fontWeight:700})}>Cancel</button>
               <button onClick={onAdd} style={TS({flex:2,padding:"14px 0",background:"rgba(45,184,106,0.12)",border:"1px solid rgba(45,184,106,0.4)",borderRadius:10,color:"#2db86a",fontSize:13,fontWeight:700})}>Add to Encounter</button>
             </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── SETTINGS SCREEN ──────────────────────────────────────────────────────────
+function SettingsScreen({settings,onSettings,onReset,onBack}){
+  const T=React.useContext(ThemeCtx);
+  const [confirmReset,setConfirmReset]=useState(false);
+  const sec={marginBottom:24};
+  const secLabel={fontSize:9,letterSpacing:3,color:T.MUT,fontWeight:700,fontFamily:"'Cinzel',serif",marginBottom:10,textTransform:"uppercase"};
+  const card={background:T.CARD,border:`1px solid ${T.BORD}`,borderRadius:12,padding:"16px"};
+  const row={display:"flex",alignItems:"center",justifyContent:"space-between",gap:12};
+  const label={fontSize:13,fontWeight:700,color:T.TXT,fontFamily:"'Cinzel',serif"};
+  const sub={fontSize:11,color:T.MUT,marginTop:3};
+  return(
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",background:T.BG,color:T.TXT}}>
+      <div style={{flexShrink:0,display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderBottom:`1px solid ${T.BORD}`,background:T.CARD}}>
+        <button onClick={onBack} style={TS({background:"none",color:T.MUT,fontSize:22,padding:"4px 8px"})}>‹</button>
+        <span style={{fontSize:11,letterSpacing:3,color:T.MUT,fontWeight:700,fontFamily:"'Cinzel',serif",flex:1}}>SETTINGS</span>
+        <GearIcon size={16} col={T.MUT}/>
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:"24px 16px"}}>
+
+        {/* Appearance */}
+        <div style={sec}>
+          <div style={secLabel}>Appearance</div>
+          <div style={card}>
+            <div style={row}>
+              <div>
+                <div style={label}>Theme</div>
+                <div style={sub}>{settings.theme==="light"?"Illuminated Codex — warm vellum":"Dark Lantern — night fire"}</div>
+              </div>
+              <div style={{display:"flex",gap:4,background:T.SURF,padding:3,borderRadius:8,border:`1px solid ${T.BORD}`}}>
+                {["dark","light"].map(t=>(
+                  <button key={t} onClick={()=>onSettings({...settings,theme:t})} style={TS({
+                    padding:"7px 12px",borderRadius:6,fontSize:10,fontWeight:700,letterSpacing:1,
+                    fontFamily:"'Cinzel',serif",
+                    background:settings.theme===t?"#c8a951":T.SURF,
+                    color:settings.theme===t?"#090b12":T.MUT,
+                    border:"none",transition:"all 0.15s",
+                  })}>
+                    {t==="dark"?"DARK":"LIGHT"}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Accessibility */}
+        <div style={sec}>
+          <div style={secLabel}>Accessibility</div>
+          <div style={card}>
+            <div style={row}>
+              <div>
+                <div style={label}>Reduce Motion</div>
+                <div style={sub}>Disables particles and all animations</div>
+              </div>
+              <button onClick={()=>onSettings({...settings,reduceMotion:!settings.reduceMotion})} style={TS({
+                padding:"8px 16px",borderRadius:8,fontSize:10,fontWeight:700,letterSpacing:1.5,
+                fontFamily:"'Cinzel',serif",transition:"all 0.15s",
+                background:settings.reduceMotion?"#c8a951":"transparent",
+                color:settings.reduceMotion?"#090b12":T.MUT,
+                border:`1px solid ${settings.reduceMotion?"#c8a951":T.BORD}`,
+              })}>
+                {settings.reduceMotion?"ON":"OFF"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Session */}
+        <div style={sec}>
+          <div style={secLabel}>Session</div>
+          <div style={card}>
+            {!confirmReset?(
+              <button onClick={()=>setConfirmReset(true)} style={TS({
+                width:"100%",padding:"13px",borderRadius:8,fontSize:12,fontWeight:700,
+                letterSpacing:1,fontFamily:"'Cinzel',serif",
+                background:"rgba(200,48,32,0.08)",
+                border:"1px solid rgba(200,48,32,0.35)",
+                color:"#d44040",
+              })}>
+                Reset All Session Data
+              </button>
+            ):(
+              <div>
+                <div style={{fontSize:13,color:T.TXT,marginBottom:12,lineHeight:1.5}}>This will clear all saved characters, enemies, and progress. Cannot be undone.</div>
+                <div style={{display:"flex",gap:8}}>
+                  <button onClick={()=>setConfirmReset(false)} style={TS({flex:1,padding:"12px",background:T.SURF,border:`1px solid ${T.BORD}`,borderRadius:8,color:T.MUT,fontSize:12,fontWeight:700})}>Cancel</button>
+                  <button onClick={()=>{onReset();setConfirmReset(false);}} style={TS({flex:1,padding:"12px",background:"rgba(200,48,32,0.15)",border:"1px solid rgba(200,48,32,0.5)",borderRadius:8,color:"#d44040",fontSize:12,fontWeight:700})}>Yes, Reset</button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div style={{textAlign:"center",fontSize:10,color:T.MUT,letterSpacing:1,paddingBottom:32}}>
+          THE LAST LANTERN · Companion App
+        </div>
+      </div>
     </div>
   );
 }
@@ -810,7 +1032,6 @@ function App(){
   const [hp,setHp]=useState(0);
   const [en,setEn]=useState(0);
   const [stress,setStress]=useState(0);
-  const [expanded,setExpanded]=useState(null);
   const [missionMode,setMissionMode]=useState(null);
   const [enemies,setEnemies]=useState([]);
   const [showAdd,setShowAdd]=useState(false);
@@ -822,9 +1043,14 @@ function App(){
   const [gambitsUsed,setGambitsUsed]=useState(0);
   const [charTokens,setCharTokens]=useState(0);
   const [defBonus,setDefBonus]=useState(0);
+  const [settings,setSettings]=useState({theme:"dark",reduceMotion:false});
 
-  // ── Restore session from localStorage ──────────────────────────────────────
+  // Restore from localStorage
   useEffect(()=>{
+    try{
+      const sv=JSON.parse(localStorage.getItem("tll-settings")||"null");
+      if(sv)setSettings(s=>({...s,...sv}));
+    }catch(e){}
     try{
       const s=JSON.parse(localStorage.getItem("tll-v1")||"null");
       if(!s||s.version!==1)return;
@@ -837,9 +1063,9 @@ function App(){
         if(s.screen==="player")setScreen("player");
       }
       if(s.statusTokens)setStatusTokens(s.statusTokens);
-      if(typeof s.gambitsUsed==='number')setGambitsUsed(s.gambitsUsed);
-      if(typeof s.charTokens==='number')setCharTokens(s.charTokens);
-      if(typeof s.defBonus==='number')setDefBonus(s.defBonus);
+      if(typeof s.gambitsUsed==="number")setGambitsUsed(s.gambitsUsed);
+      if(typeof s.charTokens==="number")setCharTokens(s.charTokens);
+      if(typeof s.defBonus==="number")setDefBonus(s.defBonus);
       if(s.screen==="leader"){
         if(Array.isArray(s.enemies))setEnemies(s.enemies);
         if(typeof s.eid==="number")setEid(s.eid);
@@ -848,7 +1074,15 @@ function App(){
     }catch(e){}
   },[]);
 
-  // ── Persist session to localStorage ────────────────────────────────────────
+  // Persist settings
+  useEffect(()=>{
+    try{localStorage.setItem("tll-settings",JSON.stringify(settings));}catch(e){}
+    // Update theme-color meta
+    const meta=document.getElementById("tll-theme-color");
+    if(meta)meta.content=settings.theme==="light"?"#f4ead8":"#090b12";
+  },[settings]);
+
+  // Persist session
   useEffect(()=>{
     try{
       localStorage.setItem("tll-v1",JSON.stringify({
@@ -861,17 +1095,15 @@ function App(){
   },[screen,charId,hp,en,stress,missionMode,enemies,eid]);
 
   const char=charId?CH[charId]:null;
+  const TK=settings.theme==="light"?LIGHT:DARK;
+  const ctx={...TK,reduceMotion:settings.reduceMotion};
 
   function pickChar(id){
     const c=CH[id];
     setCharId(id);setHp(c.hp);setEn(c.en);setStress(0);
-    setExpanded(null);setMissionMode(null);
-    setStatusTokens({});
-    setGambitsUsed(0);
-    setCharTokens(0);
-    setDefBonus(0);
-    setPlayerEntering(true);
-    setScreen("player");
+    setMissionMode(null);setStatusTokens({});
+    setGambitsUsed(0);setCharTokens(0);setDefBonus(0);
+    setPlayerEntering(true);setScreen("player");
     setTimeout(()=>setPlayerEntering(false),450);
   }
   function addEnemy(){
@@ -888,44 +1120,50 @@ function App(){
   function adjustEHP(id,d){
     setEnemies(prev=>prev.map(e=>e.id===id?{...e,hp:Math.max(0,Math.min(e.maxHp,e.hp+d))}:e));
   }
-
-  const root={fontFamily:"system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",background:BG,color:TXT,minHeight:"100vh",maxWidth:480,margin:"0 auto"};
+  function handleReset(){
+    try{localStorage.removeItem("tll-v1");}catch(e){}
+    setCharId(null);setHp(0);setEn(0);setStress(0);
+    setMissionMode(null);setEnemies([]);setEid(1);
+    setStatusTokens({});setGambitsUsed(0);setCharTokens(0);setDefBonus(0);
+    setScreen("home");
+  }
 
   return(
-    <div style={root} className="fade-in">
-      {screen==="home"&&<HomeScreen onPlayer={()=>setScreen("char-select")} onLeader={()=>{setEnemies([]);setShowAdd(false);setScreen("leader");}} savedCharId={charId} savedEnemyCount={enemies.length} onContPlayer={()=>setScreen("player")} onContLeader={()=>setScreen("leader")}/>}
-      {screen==="char-select"&&<CharSelectScreen onBack={()=>setScreen("home")} onSelect={pickChar}/>}
-      {screen==="player"&&char&&(
-        <PlayerScreen char={char} charId={charId} hp={hp} en={en} stress={stress} expanded={expanded} missionMode={missionMode}
-          onHp={d=>setHp(h=>Math.max(0,Math.min(char.hp,h+d)))}
-          onEn={d=>setEn(e=>Math.max(0,Math.min(char.en,e+d)))}
-          onStress={d=>setStress(s=>Math.max(0,Math.min(5,s+d)))}
-          onExpand={i=>setExpanded(prev=>prev===i?null:i)}
-          onMission={setMissionMode}
-          statusTokens={statusTokens}
-          onToggleStatus={t=>setStatusTokens(prev=>({...prev,[t]:!prev[t]}))}
-          gambitsUsed={gambitsUsed}
-          onGambit={setGambitsUsed}
-          charTokens={charTokens}
-          onCharTokens={setCharTokens}
-          defBonus={defBonus}
-          onDef={setDefBonus}
-          entering={playerEntering}
-          onBack={()=>setScreen("char-select")}/>
-      )}
-      {screen==="leader"&&(
-        <LeaderScreen enemies={enemies} showAdd={showAdd} newType={newType} newName={newName} nextId={eid}
-          onShowAdd={()=>setShowAdd(true)} onHideAdd={()=>setShowAdd(false)}
-          onSetType={setNewType} onSetName={setNewName} onAdd={addEnemy}
-          onRemove={id=>setEnemies(prev=>prev.filter(e=>e.id!==id))}
-          onAdjust={adjustEHP}
-          onToggleStatus={toggleEnemyStatus}
-          onBack={()=>setScreen("home")}/>
-      )}
-    </div>
+    <ThemeCtx.Provider value={ctx}>
+      <div style={{fontFamily:"system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif",background:TK.BG,color:TK.TXT,minHeight:"100vh",maxWidth:480,margin:"0 auto"}} className="fade-in">
+        {screen==="home"&&<HomeScreen onPlayer={()=>setScreen("char-select")} onLeader={()=>{setEnemies([]);setShowAdd(false);setScreen("leader");}} savedCharId={charId} savedEnemyCount={enemies.length} onContPlayer={()=>setScreen("player")} onContLeader={()=>setScreen("leader")} onSettings={()=>setScreen("settings")}/>}
+        {screen==="settings"&&<SettingsScreen settings={settings} onSettings={setSettings} onReset={handleReset} onBack={()=>setScreen("home")}/>}
+        {screen==="char-select"&&<CharSelectScreen onBack={()=>setScreen("home")} onSelect={pickChar}/>}
+        {screen==="player"&&char&&(
+          <PlayerScreen char={char} charId={charId} hp={hp} en={en} stress={stress} missionMode={missionMode}
+            onHp={d=>setHp(h=>Math.max(0,Math.min(char.hp,h+d)))}
+            onEn={d=>setEn(e=>Math.max(0,Math.min(char.en,e+d)))}
+            onStress={d=>setStress(s=>Math.max(0,Math.min(5,s+d)))}
+            onMission={setMissionMode}
+            statusTokens={statusTokens}
+            onToggleStatus={t=>setStatusTokens(prev=>({...prev,[t]:!prev[t]}))}
+            gambitsUsed={gambitsUsed}
+            onGambit={setGambitsUsed}
+            charTokens={charTokens}
+            onCharTokens={setCharTokens}
+            defBonus={defBonus}
+            onDef={setDefBonus}
+            entering={playerEntering}
+            onBack={()=>setScreen("char-select")}/>
+        )}
+        {screen==="leader"&&(
+          <LeaderScreen enemies={enemies} showAdd={showAdd} newType={newType} newName={newName} nextId={eid}
+            onShowAdd={()=>setShowAdd(true)} onHideAdd={()=>setShowAdd(false)}
+            onSetType={setNewType} onSetName={setNewName} onAdd={addEnemy}
+            onRemove={id=>setEnemies(prev=>prev.filter(e=>e.id!==id))}
+            onAdjust={adjustEHP}
+            onToggleStatus={toggleEnemyStatus}
+            onBack={()=>setScreen("home")}/>
+        )}
+      </div>
+    </ThemeCtx.Provider>
   );
 }
-
 
     ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
   </script>
